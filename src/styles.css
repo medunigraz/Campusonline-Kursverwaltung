@@ -1,0 +1,46 @@
+/* You can add global styles to this file, and also import other style files */
+body {
+  margin: 0px;
+  padding: 0px;
+}
+@font-face {
+  font-family: Syntax;
+  src: url("./assets/fonts/SyntaxLTStd-Roman.otf") format("opentype");
+}
+
+h1 {
+  color: grey;
+}
+
+mat-toolbar {
+  height: 64px;
+}
+
+mat-toolbar span {
+  color: #fff;
+  font-family: Syntax;
+  font-size: 27px;
+  letter-spacing: 1px;
+  padding-left: 10px;
+}
+
+mat-toolbar .mat-icon.mat-icon-logo {
+  width: 73px;
+  height: 73px;
+  padding-top: 9px;
+}
+
+.mat-toolbar-row, .mat-toolbar-single-row {
+    padding: 0px 12px !important;
+}
+.td-layout-nav-toolbar-content span {
+  padding-top: 5px;
+}
+
+.td-layout-nav-content {
+  margin: 5px;
+}
+
+.content {
+  margin: 20px;
+}

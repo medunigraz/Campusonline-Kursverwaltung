@@ -1,0 +1,57 @@
+@import '~@angular/material/theming';
+@import '~@covalent/core/theming/all-theme';
+
+// (optional) Additional themes
+@import '~@covalent/markdown/markdown-theme';
+@import '~@covalent/highlight/highlight-theme';
+
+
+@include mat-core();
+// define a real custom palette (using http://mcg.mbitson.com)
+$med-uni: (
+    50: #ffffff,
+    100: #45AB34,
+    200: #b4c9e4,
+    300: #7fa3d1,
+    400: #6992c9,
+    500: #5282c1,
+    600: #4072b4,
+    700: #38649d,
+    800: #305687,
+    900: #000000,
+    contrast: (
+        50: $black-87-opacity,
+        100: $black-87-opacity,
+        200: $black-87-opacity,
+        300: $black-87-opacity,
+        400: $black-87-opacity,
+        500: white,
+        600: white,
+        700: white,
+        800: white,
+        900: white
+    )
+);
+
+
+// Define a custom typography config that overrides the font-family
+// or any typography level.
+$typography: mat-typography-config(
+  $headline: mat-typography-level(32px, 48px, 700)
+);
+
+//@include mat-core($typography); // $typography is an **optional** argument for the mat-core
+
+$primary: mat-palette($med-uni, 100, 300, 700);
+$accent:  mat-palette($mat-light-blue, 600, 100, 900);
+
+$warn:    mat-palette($mat-red, 600, 100, 900);
+
+$theme: mat-light-theme($primary, $accent, $warn);
+
+@include angular-material-theme($theme);
+@include covalent-theme($theme, $typography); // $typography is an **optional** argument for the covalent-theme
+
+// (optional) Additional themes
+@include covalent-markdown-theme($theme);
+@include covalent-highlight-theme();
