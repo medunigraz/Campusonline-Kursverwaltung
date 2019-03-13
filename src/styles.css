@@ -44,3 +44,21 @@ mat-toolbar .mat-icon.mat-icon-logo {
 .content {
   margin: 20px;
 }
+
+table {
+    border-collapse: collapse;
+}
+
+table thead tr th {
+  color: grey;
+  text-align: center;
+}
+table thead tr, table tbody tr  {
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+  border-bottom-color: #e0e0e0;
+  height: 48px;
+}
+table thead tr th, table tbody tr td {
+  padding: 5px 15px 5px 15px;
+}

@@ -2,6 +2,7 @@ import { Injectable } from "@angular/core";
 import { HttpClient, HttpHeaders, HttpParams} from '@angular/common/http';
 
 import { OAuthService } from 'angular-oauth2-oidc';
+import { Observable } from 'rxjs';
 
 
 @Injectable()
@@ -10,7 +11,7 @@ export class CourseService {
 
   }
 
-  getCourseFromRoom(room: number) {
+  getCourseFromRoom(room: number): Observable<Object> {
     let startGTDate = new Date(); //Start 2018-01-17T09:30:00+01:00
     let startLTDate = new Date();
 
