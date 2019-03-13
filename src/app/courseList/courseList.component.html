@@ -11,14 +11,17 @@
       </tr>
     </thead>
     <tbody>
-      <tr td-data-table-row *ngFor="let course of coursesArray">
+      <tr td-data-table-row *ngFor="let course of coursesArray" id="Kurs_{{course.id}}">
         <td>{{course.room.title}} ({{course.room.name_full}})</td>
         <td>{{course.coursegroup.course.name}}</td>
         <td>{{course.coursegroup.course.category}}</td>
         <td>{{course.person.title}} {{course.person.first_name}} {{course.person.last_name}}</td>
         <td>{{course.start | date:'dd.MM.yyy HH:mm' }}</td>
         <td>{{course.end | date:'dd.MM.yyy HH:mm' }}</td>
-        <td><button (click)="startCourseFrom(course.id)"  mat-button color="primary">Kurs starten</button></td>
+        <td class="action">
+          <button (click)="startCourseFrom(course.id, course.room.id)"  mat-button color="primary" *ngIf="startedCourseId == ''">Kurs starten</button>
+          <p *ngIf="startedCourseId == course.id">Kurs gestartet</p>
+        </td>
       </tr>
     </tbody>
   </table>

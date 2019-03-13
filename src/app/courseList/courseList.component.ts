@@ -21,7 +21,7 @@ export class CourseListComponent implements OnInit {
 
   private raumId : number = 0;
   private coursesArray = [];
-  private startedCourseId;
+  private startedCourseId : string = "";
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -50,8 +50,24 @@ export class CourseListComponent implements OnInit {
         );
 
   }
-  startCourseFrom(id: string) {
-    console.log(id);
+  startCourseFrom(id: string, roomId: number) {
+    let data;
+
+    this.courseService.startCourseForRoom(id, roomId)
+        .subscribe(
+          (dataReturn) => {
+            data = dataReturn;
+            console.log(data);
+            this.startedCourseId = data.course_group_term;
+
+            let selectedCourseElement = document.getElementById('Kurs_' + this.startedCourseId);
+            selectedCourseElement.className = 'selectedCourse';
+          },
+          (err) => {
+            console.log(err);
+          }
+        );
+
   }
 
 }

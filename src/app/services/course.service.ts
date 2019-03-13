@@ -7,7 +7,14 @@ import { Observable } from 'rxjs';
 
 @Injectable()
 export class CourseService {
+  private headers;
   constructor (private http: HttpClient, private oauthService: OAuthService) {
+    this.headers = {
+          headers: new HttpHeaders({
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' +this.oauthService.getAccessToken()
+          })
+        };
 
   }
 
@@ -23,13 +30,14 @@ export class CourseService {
 
     let paramsUrl = "?room=" + room + "&start__gt=" + startGTString + "&start__lt=" + startLTString;
     let url = "https://api.medunigraz.at:8088/v1/campusonline/course-group-term/" + paramsUrl;
-    let headers = {
-          headers: new HttpHeaders({
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' +this.oauthService.getAccessToken()
-          })
-        };
-    return this.http.get(url, headers);
 
+    return this.http.get(url, this.headers);
+  }
+
+  startCourseForRoom(courseId: string, roomId: number) {
+    let url = "https://api.medunigraz.at:8088/v1/attendance/campusonlineholding/";
+    var parameter = JSON.stringify({"course_group_term": courseId, "room": roomId, "entries": []});
+
+    return this.http.post(url, parameter, this.headers);
   }
 }
