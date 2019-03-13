@@ -1,3 +1,25 @@
 <h1>
   <mat-icon>school</mat-icon> Campusonline Kursverwaltung
 </h1>
+<div class="card">
+  <table td-data-table *ngIf="coursesArray.length > 0">
+    <thead>
+      <tr td-data-table-column-row>
+        <th td-data-table-column *ngFor="let column of columns">
+          {{column.label}}
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr td-data-table-row *ngFor="let course of coursesArray">
+        <td>{{course.room.title}} ({{course.room.name_full}})</td>
+        <td>{{course.coursegroup.course.name}}</td>
+        <td>{{course.coursegroup.course.category}}</td>
+        <td>{{course.person.title}} {{course.person.first_name}} {{course.person.last_name}}</td>
+        <td>{{course.start | date:'dd.MM.yyy HH:mm' }}</td>
+        <td>{{course.end | date:'dd.MM.yyy HH:mm' }}</td>
+        <td><button (click)="startCourseFrom(course.id)"  mat-button color="primary" >Kurs starten</button></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
