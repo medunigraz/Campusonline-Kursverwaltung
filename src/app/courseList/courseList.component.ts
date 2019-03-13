@@ -42,7 +42,7 @@ export class CourseListComponent implements OnInit {
           (dataReturn) => {
             data = dataReturn;
             this.coursesArray = data.results;
-            console.log(this.coursesArray);
+            console.log(this.coursesArray); 
           },
           (err) => {
             console.log(err);

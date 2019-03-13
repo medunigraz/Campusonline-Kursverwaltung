@@ -22,6 +22,7 @@ import { CovalentHttpModule } from '@covalent/http';
 import { CovalentHighlightModule } from '@covalent/highlight';
 import { CovalentMarkdownModule } from '@covalent/markdown';
 import { CovalentDynamicFormsModule } from '@covalent/dynamic-forms';
+import { CovalentMessageModule } from '@covalent/core/message';
 
 import {MatButtonModule} from '@angular/material';
 import {MatMenuModule} from '@angular/material/menu'
@@ -60,6 +61,8 @@ export function get_login(appLoadService: AppLoadService) {
     CovalentHighlightModule,
     CovalentMarkdownModule,
     CovalentDynamicFormsModule,
+    CovalentMessageModule,
+    
     OAuthModule.forRoot()
   ],
   providers: [

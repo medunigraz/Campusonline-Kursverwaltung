@@ -22,5 +22,8 @@
       </tr>
     </tbody>
   </table>
-
+  <div *ngIf="coursesArray.length < 1 ">
+    <p class="mat-body-1">Standalone message:</p>
+    <td-message label="Information!" sublabel="Es wurde für diese Raum derzeit kein Kurs gefunden, der in den nächsten 15 Minuten anfangen wird!" color="accent" icon="info"></td-message>
+  </div>
 </div>
