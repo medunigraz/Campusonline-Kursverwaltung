@@ -72,3 +72,7 @@ table tbody tr.selectedCourse {
   background-color: #45AB34;
   color: white;
 }
+
+table tbody tr.unSelectedCourse {
+  display: none;
+}

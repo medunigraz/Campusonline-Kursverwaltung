@@ -51,8 +51,21 @@ export class CourseListComponent implements OnInit {
 
   }
   startCourseFrom(id: string, roomId: number) {
-    let data;
-
+/*
+    this.startedCourseId = '4358775-232710-51671';
+    
+    let unSelectedCourseElement;
+    let unSelectedCourseElements = document.getElementsByClassName('ng-star-inserted');
+    for (let element of unSelectedCourseElements) {
+        if(element.id) {
+          unSelectedCourseElement = document.getElementById(element.id);
+          //console.log(unSelectedCourseElement);
+          unSelectedCourseElement.className = 'ng-star-inserted unSelectedCourse';
+        }
+    }
+    let selectedCourseElement = document.getElementById('Kurs_' + this.startedCourseId);
+    selectedCourseElement.className = 'ng-star-inserted selectedCourse';
+*/
     this.courseService.startCourseForRoom(id, roomId)
         .subscribe(
           (dataReturn) => {
@@ -60,8 +73,18 @@ export class CourseListComponent implements OnInit {
             console.log(data);
             this.startedCourseId = data.course_group_term;
 
+            let unSelectedCourseElement;
+            let unSelectedCourseElements = document.getElementsByClassName('ng-star-inserted');
+            for (let element of unSelectedCourseElements) {
+                if(element.id) {
+                  unSelectedCourseElement = document.getElementById(element.id);
+                  //console.log(unSelectedCourseElement);
+                  unSelectedCourseElement.className = 'ng-star-inserted unSelectedCourse';
+                }
+            }
             let selectedCourseElement = document.getElementById('Kurs_' + this.startedCourseId);
-            selectedCourseElement.className = 'selectedCourse';
+            selectedCourseElement.className = 'ng-star-inserted selectedCourse';
+            let data;
           },
           (err) => {
             console.log(err);

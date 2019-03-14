@@ -20,7 +20,7 @@
         <td>{{course.end | date:'dd.MM.yyy HH:mm' }}</td>
         <td class="action">
           <button (click)="startCourseFrom(course.id, course.room.id)"  mat-button color="primary" *ngIf="startedCourseId == ''">Kurs starten</button>
-          <p *ngIf="startedCourseId == course.id">Kurs gestartet</p>
+          <span *ngIf="startedCourseId == course.id">Kurs gestartet</span>
         </td>
       </tr>
     </tbody>
