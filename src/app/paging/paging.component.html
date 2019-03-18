@@ -1,0 +1,5 @@
+<div *ngIf="countPages > pageSize">
+  <td-paging-bar #pagingBarLinks pageLinkCount="5" [firstLast]="true" [pageSize]="pageSize" [total]="countPages" (change)="changeLinks($event)">
+    <span hide-xs>{{pagingBarLinks.range}} of {{countPages}}</span>
+  </td-paging-bar>
+</div>

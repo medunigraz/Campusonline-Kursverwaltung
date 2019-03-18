@@ -76,3 +76,8 @@ table tbody tr.selectedCourse {
 table tbody tr.unSelectedCourse {
   display: none;
 }
+
+.mat-grid-tile .mat-figure {
+    align-items: left !important;
+    justify-content: left !important;
+}

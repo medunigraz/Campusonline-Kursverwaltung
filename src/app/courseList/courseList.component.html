@@ -1,7 +1,37 @@
 <h1>
   <mat-icon>school</mat-icon> Campusonline Kursverwaltung
 </h1>
-<div class="card">
+<div *tdLoading="'overlayStarSyntax'; mode:'indeterminate'; type:'circle'; strategy:'overlay'; color:'accent'">
+  <div class="filter" *ngIf="!startedCourse">
+    <form class="content" (ngSubmit)="searchCourseInAllRooms()" #SearchForm="ngForm" *ngIf="allRoomSearch == true ">
+      <mat-grid-list cols="1" rowHeight="65">
+        <mat-grid-tile>
+          <mat-form-field>
+              <input
+                matInput
+                [formControl]="searchRoomName"
+                placeholder="Raum Bezeichnung"
+                (keyup)="onSearchRoomNameKeyUp()"
+                #mySearchCourseName
+              >
+          </mat-form-field>
+        </mat-grid-tile>
+        <mat-grid-tile>
+          <mat-form-field>
+              <input
+                matInput
+                [formControl]="searchCourseName"
+                placeholder="Kurs Bezeichnung"
+                (keyup)="onSearchCourseNameKeyUp()"
+                #mySearchCourseName
+              >
+          </mat-form-field>
+        </mat-grid-tile>
+      </mat-grid-list>
+    </form>
+  </div>
+  <paging>
+  </paging>
   <table td-data-table *ngIf="coursesArray.length > 0">
     <thead>
       <tr td-data-table-column-row>
@@ -12,22 +42,26 @@
     </thead>
     <tbody>
       <tr td-data-table-row *ngFor="let course of coursesArray" id="Kurs_{{course.id}}">
-        <td>{{course.room.title}} ({{course.room.name_full}})</td>
-        <td>{{course.coursegroup.course.name}}</td>
-        <td>{{course.coursegroup.course.category}}</td>
+        <td>{{course.room.title}} <br><i>({{course.room.name_full}})</i></td>
+        <td><b>{{course.title}}</b> (Typ: {{course.coursegroup.course.category}})<br><i>Kursgruppe: {{course.coursegroup.course.name}}</i></td>
         <td>{{course.person.title}} {{course.person.first_name}} {{course.person.last_name}}</td>
         <td>{{course.start | date:'dd.MM.yyy HH:mm' }}</td>
         <td>{{course.end | date:'dd.MM.yyy HH:mm' }}</td>
         <td class="action">
-          <button (click)="startCourseFrom(course.id, course.room.id)"  mat-button color="primary" *ngIf="startedCourseId == ''">Kurs starten</button>
-          <span *ngIf="startedCourseId == course.id">Kurs gestartet</span>
+          <button (click)="startCourseFrom(course.id, course.room.id)"  mat-button color="primary" *ngIf="!startedCourse">Kurs starten</button>
+          <span *ngIf="startedCourse">Kurs gestartet</span>
         </td>
       </tr>
     </tbody>
   </table>
-  <div *ngIf="coursesArray.length < 1 ">
+  <paging #pagingComp (onPageChange)="onPageChange($event)">
+  </paging>
+  <div *ngIf="coursesArray.length < 1 && allRoomSearch == false">
     <td-message label="Information!" sublabel="Es wurde für diese Raum derzeit kein Kurs gefunden, der in den nächsten 15 Minuten anfangen wird!" color="accent" icon="info"></td-message>
     <br>
-    <button (click)="searchCourseInAllRooms()"  mat-button color="primary" *ngIf="startedCourseId == ''">Kurse in anderen Raum suchen (Zeitraum: +/- 7 Tage)</button>
+    <button (click)="searchCourseInAllRooms()"  mat-button color="primary" *ngIf="!startedCourse"><mat-icon>search</mat-icon>Kurse in anderen Raum suchen (Zeitraum: +/- 7 Tage)</button>
+  </div>
+  <div *ngIf="coursesArray.length < 1 && allRoomSearch == true">
+    <td-message label="Information!" sublabel="Es wurde für Ihre Suchoptionen kein Kurs gefunden!" color="accent" icon="info"></td-message>
   </div>
 </div>

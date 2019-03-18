@@ -1,8 +1,11 @@
 import {HeaderComponent } from './header/header.component';
 import {CourseListComponent } from './courseList/courseList.component';
+import {PagingComponent} from './paging/paging.component';
 
 import {APP_ROUTES} from './app.routes';
 import {RouterModule} from '@angular/router';
+
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule, APP_INITIALIZER  } from '@angular/core';
@@ -23,11 +26,15 @@ import { CovalentHighlightModule } from '@covalent/highlight';
 import { CovalentMarkdownModule } from '@covalent/markdown';
 import { CovalentDynamicFormsModule } from '@covalent/dynamic-forms';
 import { CovalentMessageModule } from '@covalent/core/message';
+import { CovalentPagingModule } from '@covalent/core/paging';
+import { CovalentLoadingModule } from '@covalent/core/loading';
 
 import {MatButtonModule} from '@angular/material';
 import {MatMenuModule} from '@angular/material/menu'
 import {MatListModule} from '@angular/material/list';
 import {MatIconModule} from '@angular/material/icon';
+import {MatInputModule} from '@angular/material/input';
+import {MatGridListModule} from '@angular/material/grid-list';
 
 import { AppComponent } from './app.component';
 
@@ -40,7 +47,8 @@ export function get_login(appLoadService: AppLoadService) {
   declarations: [
     AppComponent,
     HeaderComponent,
-    CourseListComponent
+    CourseListComponent,
+    PagingComponent
   ],
   imports: [
     RouterModule.forRoot(APP_ROUTES),
@@ -48,21 +56,27 @@ export function get_login(appLoadService: AppLoadService) {
     BrowserModule,
     BrowserAnimationsModule,
 
+    FormsModule,
+    ReactiveFormsModule,
+
     MatButtonModule,
     MatMenuModule,
     MatListModule,
     MatIconModule,
+    MatInputModule,
+    MatGridListModule,
 
 
     CovalentLayoutModule,
     CovalentStepsModule,
-    // (optional) Additional Covalent Modules imports
     CovalentHttpModule.forRoot(),
     CovalentHighlightModule,
     CovalentMarkdownModule,
     CovalentDynamicFormsModule,
     CovalentMessageModule,
-    
+    CovalentPagingModule,
+    CovalentLoadingModule,
+
     OAuthModule.forRoot()
   ],
   providers: [
