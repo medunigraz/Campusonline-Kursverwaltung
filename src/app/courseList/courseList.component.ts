@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild, Renderer2, ElementRef } from '@angular/core';
 import {Router, ActivatedRoute, Params} from '@angular/router';
 import {FormGroup, Validators, FormBuilder, FormControl} from "@angular/forms";
+import { IPageChangeEvent } from '@covalent/core/paging';
 
 import {CourseService } from '../services/course.service';
 import { ITdDataTableColumn } from '@covalent/core/data-table';
@@ -36,7 +37,6 @@ export class CourseListComponent implements OnInit {
   startedCourse : CampusOnlineHoldings;
 
   private timeOut;
-  private keyUpTime: number = 700;
   private allRoomSearch: boolean  = false;
 
   searchCourseName = new FormControl();
@@ -97,7 +97,7 @@ export class CourseListComponent implements OnInit {
       this.timeOut = setTimeout(
               () => {
                 this.getCourses(this.raumId);
-          }, this.keyUptime
+          }, 700
       );
   }
 
@@ -106,7 +106,7 @@ export class CourseListComponent implements OnInit {
       this.timeOut = setTimeout(
               () => {
                 this.getCourses(this.raumId);
-          }, this.keyUptime
+          }, 700
       );
   }
 
@@ -179,7 +179,7 @@ console.log(this.startedCourse);
     }
   }
 
-  onPageChange(eventLinks) {
+  onPageChange(eventLinks: IPageChangeEvent) {
     this.offset = eventLinks.fromRow - 1;
     this.searchCourseInAllRooms();
   }

@@ -1,5 +1,6 @@
 import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { MatIconRegistry } from '@angular/material/icon';
+import { IPageChangeEvent } from '@covalent/core/paging';
 
 @Component({
   selector: 'paging',
@@ -7,7 +8,7 @@ import { MatIconRegistry } from '@angular/material/icon';
 })
 export class PagingComponent implements OnInit {
 
-  @Output('onPageChange') onPageChange: EventEmitter<number> = new EventEmitter();
+  @Output('onPageChange') onPageChange: EventEmitter<IPageChangeEvent> = new EventEmitter();
 
   eventLinks: IPageChangeEvent;
 

@@ -5,10 +5,13 @@ import { OAuthService } from 'angular-oauth2-oidc';
 import { Observable } from 'rxjs';
 
 import {CampusOnlineHoldings} from '../base/campusonlineholding';
+import { environment } from '../../environments/environment';
 
 @Injectable()
 export class CourseService {
   private headers;
+  private apiURL : string = environment.apiURL;
+
   constructor (private http: HttpClient, private oauthService: OAuthService) {
     this.headers = {
           headers: new HttpHeaders({
@@ -32,13 +35,13 @@ export class CourseService {
       paramsUrl += "&title__icontains=" + courseName;
     }
 
-    let url = "https://api.medunigraz.at:8088/v1/campusonline/course-group-term/" + paramsUrl;
+    let url = this.apiURL + "campusonline/course-group-term/" + paramsUrl;
 
     return this.http.get(url, this.headers);
   }
 
   startCourseForRoom(courseId: string, roomId: number) {
-    let url = "https://api.medunigraz.at:8088/v1/attendance/campusonlineholding/";
+    let url = this.apiURL + "attendance/campusonlineholding/";
     var parameter = JSON.stringify({"course_group_term": courseId, "room": roomId, "entries": []});
 
     return this.http.post(url, parameter, this.headers);
@@ -46,8 +49,10 @@ export class CourseService {
 
   checkCourseIsRunning(courseId: string) {
       let paramsUrl = "?course_group_term=" + courseId;
-      let url = "https://api.medunigraz.at:8088/v1/attendance/campusonlineholding/" + paramsUrl;
+      let url = this.apiURL + "attendance/campusonlineholding/" + paramsUrl;
 
       return this.http.get(url, this.headers);
   }
+
+  
 }
