@@ -28,6 +28,7 @@ import { CovalentDynamicFormsModule } from '@covalent/dynamic-forms';
 import { CovalentMessageModule } from '@covalent/core/message';
 import { CovalentPagingModule } from '@covalent/core/paging';
 import { CovalentLoadingModule } from '@covalent/core/loading';
+import { CovalentExpansionPanelModule } from '@covalent/core/expansion-panel';
 
 import {MatButtonModule} from '@angular/material';
 import {MatMenuModule} from '@angular/material/menu'
@@ -76,6 +77,7 @@ export function get_login(appLoadService: AppLoadService) {
     CovalentMessageModule,
     CovalentPagingModule,
     CovalentLoadingModule,
+    CovalentExpansionPanelModule,
 
     OAuthModule.forRoot()
   ],

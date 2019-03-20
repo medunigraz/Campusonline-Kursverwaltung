@@ -33,6 +33,7 @@
   <div *ngIf="runningCourse" id="runningCourse">
     <td-message label="Warnung!" sublabel="Es wurde folgender Kurs gefunden, den Sie gestartet haben, ohne diesen vor dem Schließen des Browsers zu beenden!" color="warn" icon="info"></td-message>
   </div>
+  <td-expansion-panel-group [multi]="false" #panelGroup>
   <table td-data-table width="90%">
     <thead *ngIf="coursesArray.length > 0 && !startedCourseOnlineHolding">
       <tr td-data-table-column-row id="trHead">
@@ -42,26 +43,57 @@
         </th>
         -->
         <th width="20%">Raum</th>
-        <th width="40%">Kurs Bezeichnung</th>
+        <th width="40%">Kurs</th>
         <th width="20%">Start - Ende</th>
         <th width="10%">Aktion</th>
       </tr>
     </thead>
     <tbody *ngIf="coursesArray.length > 0">
-      <tr td-data-table-row *ngFor="let course of coursesArray" id="Kurs_{{course.id}}">
-        <td>{{course.room.title}} <br><i>({{course.room.name_full}})</i></td>
-        <td ><b>{{course.title}}</b> (Typ: {{course.coursegroup.course.category}})<br><i>Kursgruppe: {{course.coursegroup.course.name}}</i></td>
-<!-- Livebetrieb nur der Vortragende, der sich angemeldet hat -->
-<!--        <td>{{course.person.title}} {{course.person.first_name}} {{course.person.last_name}}</td> -->
-        <td>{{course.start | date:'dd.MM.yyy HH:mm' }} - {{course.end | date:'dd.MM.yyy HH:mm' }}</td>
-        <td class="action">
-          <button (click)="startCourse(course.id, course.room.id)"  mat-button color="primary" *ngIf="!startedCourseOnlineHolding"><i class="material-icons startCourse">play_arrow</i>Kurs starten</button>
-          <button (click)="finishCourse()"  mat-button color="primary" *ngIf="startedCourseOnlineHolding"><i class="material-icons stopCourse">stop</i>Kurs beenden</button>
-<!--
-            <span *ngIf="startedCourseOnlineHolding">Kurs gestartet</span>
--->
-        </td>
-      </tr>
+        <tr td-data-table-row *ngFor="let course of coursesArray" id="Kurs_{{course.id}}">
+          <td>{{course.room.title}} <br><i>({{course.room.name_full}})</i></td>
+          <td-expansion-panel label="{{course.title}}">
+            <div class="moreInformation">
+              <table>
+                <tr><td><b>Kursgruppe</b>:</td><td>{{course.coursegroup.course.name}}</td></tr>
+                <tr><td><b>Typ</b>:</td><td>{{course.coursegroup.course.category}}</td></tr>
+                <tr><td><b>Semester, Jahr</b>:</td><td>{{course.coursegroup.course.semester}}, {{course.coursegroup.course.year}}</td></tr>
+                <tr><td><b>VortragendeR</b>:</td><td>{{course.person.title}} {{course.person.first_name}} {{course.person.last_name}}</td></tr>
+              </table>
+            </div>
+          </td-expansion-panel>
+          <td>{{course.start | date:'dd.MM.yyy HH:mm' }} - {{course.end | date:'dd.MM.yyy HH:mm' }}</td>
+          <td class="action">
+            <button (click)="startCourse(course.id, course.room.id)"  mat-button color="primary" *ngIf="!startedCourseOnlineHolding"><i class="material-icons startCourse">play_arrow</i>Kurs starten</button>
+            <button (click)="finishCourse()"  mat-button color="primary" *ngIf="startedCourseOnlineHolding"><i class="material-icons stopCourse">stop</i>Kurs beenden</button>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="5">
+            <div *ngIf="startedCourseOnlineHolding" class="StudentList">
+              <h4><i class="material-icons">supervisor_account</i>  StudentInnen </h4>
+              <table td-data-table *ngIf="coursesArray.length > 0 && studentArray.length > 0">
+                <thead>
+                  <tr td-data-table-column-row>
+                    <th td-data-table-column *ngFor="let column of columsStudents">
+                      {{column.label}}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr td-data-table-row *ngFor="let course of studentArray" >
+                    <td><#ID#></td>
+                    <td><#NAME#></td>
+                    <td><#EINGESCHRIEBEN#></td>
+                    <td><#BUTTON#></td>
+                  </tr>
+                </tbody>
+              </table>
+              <div *ngIf="studentArray.length < 1">
+                <td-message label="Information!" sublabel="Es sind für Ihren Kurs noch keine StudentInnen eingeschrieben!" color="accent" icon="info"></td-message>
+              </div>
+            </div>
+          </td>
+        </tr>
     </tbody>
     <tfoot>
       <td colspan="5">
@@ -70,6 +102,7 @@
       </td>
     </tfoot>
   </table>
+  </td-expansion-panel-group>
   <div *ngIf="coursesArray.length < 1 && allRoomSearch == false">
     <td-message label="Information!" sublabel="Es wurde für diese Raum derzeit kein Kurs gefunden, der in den nächsten 15 Minuten anfangen wird!" color="accent" icon="info"></td-message>
     <br>
@@ -77,29 +110,5 @@
   </div>
   <div *ngIf="coursesArray.length < 1 && allRoomSearch == true">
     <td-message label="Information!" sublabel="Es wurde für Ihre Suchoptionen kein Kurs gefunden!" color="accent" icon="info"></td-message>
-  </div>
-
-  <div *ngIf="startedCourseOnlineHolding" class="StudentList">
-    <h4><i class="material-icons">supervisor_account</i>  StudentInnen </h4>
-    <table td-data-table *ngIf="coursesArray.length > 0 && studentArray.length > 0">
-      <thead>
-        <tr td-data-table-column-row>
-          <th td-data-table-column *ngFor="let column of columsStudents">
-            {{column.label}}
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr td-data-table-row *ngFor="let course of studentArray" >
-          <td><#ID#></td>
-          <td><#NAME#></td>
-          <td><#EINGESCHRIEBEN#></td>
-          <td><#BUTTON#></td>
-        </tr>
-      </tbody>
-    </table>
-    <div *ngIf="studentArray.length < 1">
-      <td-message label="Information!" sublabel="Es sind für Ihren Kurs noch keine StudentInnen eingeschrieben!" color="accent" icon="info"></td-message>
-    </div>
   </div>
 </div>
