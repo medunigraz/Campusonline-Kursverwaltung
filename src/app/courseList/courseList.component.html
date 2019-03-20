@@ -51,9 +51,10 @@
     <tbody *ngIf="coursesArray.length > 0">
         <tr td-data-table-row *ngFor="let course of coursesArray" id="Kurs_{{course.id}}">
           <td>{{course.room.title}} <br><i>({{course.room.name_full}})</i></td>
-          <td-expansion-panel label="{{course.title}}">
+          <td-expansion-panel label="{{course.title | couresName: 75}}">
             <div class="moreInformation">
               <table>
+                <tr><td colspan="2">{{course.title}}</td></tr>
                 <tr><td><b>Kursgruppe</b>:</td><td>{{course.coursegroup.course.name}}</td></tr>
                 <tr><td><b>Typ</b>:</td><td>{{course.coursegroup.course.category}}</td></tr>
                 <tr><td><b>Semester, Jahr</b>:</td><td>{{course.coursegroup.course.semester}}, {{course.coursegroup.course.year}}</td></tr>

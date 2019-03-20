@@ -1,6 +1,7 @@
 import {HeaderComponent } from './header/header.component';
 import {CourseListComponent } from './courseList/courseList.component';
 import {PagingComponent} from './paging/paging.component';
+import {CourseNamePipe} from './pipes/courseName.pipe';
 
 import {APP_ROUTES} from './app.routes';
 import {RouterModule} from '@angular/router';
@@ -49,7 +50,8 @@ export function get_login(appLoadService: AppLoadService) {
     AppComponent,
     HeaderComponent,
     CourseListComponent,
-    PagingComponent
+    PagingComponent,
+    CourseNamePipe
   ],
   imports: [
     RouterModule.forRoot(APP_ROUTES),
