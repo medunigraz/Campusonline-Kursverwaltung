@@ -26,7 +26,7 @@ export class PagingComponent implements OnInit {
 
   setPagingDatas(count: number) {
     this.countArray = count;
-    this.countPages = Math.ceil(this.countArray / 20);
+    this.countPages = Math.ceil(this.countArray / this.pageSize);
   }
 
   changeLinks(event: IPageChangeEvent): void {

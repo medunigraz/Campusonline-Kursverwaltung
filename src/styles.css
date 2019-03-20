@@ -8,8 +8,31 @@ body {
   src: url("./assets/fonts/SyntaxLTStd-Roman.otf") format("opentype");
 }
 
-h1 {
+h1, h4 {
   color: grey;
+}
+
+button.mat-button span{
+  font-weight: bold;
+  font-size: 14px;
+}
+
+button.mat-button {
+  border-style: solid;
+  border-width: 1px;
+  border-color: #45AB34;
+}
+
+button.mat-button:hover {
+  background-color: #45AB34;
+}
+
+button.mat-button:hover span {
+  color: white;
+}
+
+button i.startCourse, button i.stopCourse {
+  padding-bottom:  2px;
 }
 
 mat-toolbar {
@@ -68,16 +91,39 @@ table tbody tr td.class p {
   margin: 0px;
 }
 
+table tbody tr:hover {
+  color: #45AB34;
+}
+
+/*
+table thead tr.trHeadSelectedCourse {
+  border-bottom-color: #45AB34;
+}
+
 table tbody tr.selectedCourse {
-  background-color: #45AB34;
-  color: white;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #45AB34;
+  color: #45AB34;
+}
+*/
+table tbody tr.selectedCourse {
+  border: none;
 }
 
 table tbody tr.unSelectedCourse {
   display: none;
 }
 
+.endCourse {
+  background-color: red;
+}
+
 .mat-grid-tile .mat-figure {
     align-items: left !important;
     justify-content: left !important;
+}
+
+div.StudentList {
+  margin-top: 20px;
 }

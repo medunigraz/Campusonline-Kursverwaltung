@@ -24,7 +24,7 @@ export class CourseService {
 
   getCourses(offset: number, roomNr: number, startGT: string, startLT: string, roomTitle: String, courseName: String): Observable<Object> {
 
-    let paramsUrl = "?offset=" + offset + "&start__gte=" + startGT;// + "&start__lte=" + startLT;
+    let paramsUrl = "?offset=" + offset + "&start__gte=" + startGT + "&start__lte=" + startLT;
     if(roomNr != 0) {
       paramsUrl += "&room=" + roomNr;
     }
@@ -40,9 +40,15 @@ export class CourseService {
     return this.http.get(url, this.headers);
   }
 
+  getCourseById(courseId: string){
+      let url = this.apiURL + "campusonline/course-group-term/" + courseId + "/";
+
+      return this.http.get(url, this.headers);
+  }
+
   startCourseForRoom(courseId: string, roomId: number) {
     let url = this.apiURL + "attendance/campusonlineholding/";
-    var parameter = JSON.stringify({"course_group_term": courseId, "room": roomId, "entries": []});
+    var parameter = JSON.stringify({"course_group_term": courseId, "room": roomId, "entries": [], "state": "running"});
 
     return this.http.post(url, parameter, this.headers);
   }
@@ -54,5 +60,19 @@ export class CourseService {
       return this.http.get(url, this.headers);
   }
 
-  
+  checkCourseIsRunningInRoom(roomId: number) {
+      let paramsUrl = "?room=" + roomId;
+      let url = this.apiURL + "attendance/campusonlineholding/" + paramsUrl;
+
+      return this.http.get(url, this.headers);
+
+  }
+
+  finishCourse(course: CampusOnlineHoldings, finished: string) {
+    let url = this.apiURL + "attendance/campusonlineholding/"+course.id+"/";
+    var parameter = JSON.stringify({"course_group_term": course.course_group_term, "id": course.id, "room": course.room, "entries": course.entries, "finished": finished, "state": "finished", "initiated": course.initiated});
+
+    return this.http.put(url, parameter, this.headers);
+  }
+
 }

@@ -1,8 +1,8 @@
 <h1>
-  <mat-icon>school</mat-icon> Campusonline Kursverwaltung
+  <mat-icon>school</mat-icon>  Campusonline Kursverwaltung
 </h1>
 <div *tdLoading="'overlayStarSyntax'; mode:'indeterminate'; type:'circle'; strategy:'overlay'; color:'accent'">
-  <div class="filter" *ngIf="!startedCourse">
+  <div class="filter" *ngIf="!startedCourseOnlineHolding">
     <form class="content" (ngSubmit)="searchCourseInAllRooms()" #SearchForm="ngForm" *ngIf="allRoomSearch == true ">
       <mat-grid-list cols="1" rowHeight="65">
         <mat-grid-tile>
@@ -30,38 +30,73 @@
       </mat-grid-list>
     </form>
   </div>
-  <paging>
-  </paging>
-  <table td-data-table *ngIf="coursesArray.length > 0">
-    <thead>
-      <tr td-data-table-column-row>
+  <table td-data-table width="90%">
+    <thead *ngIf="coursesArray.length > 0 && !startedCourseOnlineHolding">
+      <tr td-data-table-column-row id="trHead">
+        <!--
         <th td-data-table-column *ngFor="let column of columns">
           {{column.label}}
         </th>
+        -->
+        <th width="20%">Raum</th>
+        <th width="40%">Kurs Bezeichnung</th>
+        <th width="20%">Start - Ende</th>
+        <th width="10%">Aktion</th>
       </tr>
     </thead>
-    <tbody>
+    <tbody *ngIf="coursesArray.length > 0">
       <tr td-data-table-row *ngFor="let course of coursesArray" id="Kurs_{{course.id}}">
         <td>{{course.room.title}} <br><i>({{course.room.name_full}})</i></td>
-        <td><b>{{course.title}}</b> (Typ: {{course.coursegroup.course.category}})<br><i>Kursgruppe: {{course.coursegroup.course.name}}</i></td>
-        <td>{{course.person.title}} {{course.person.first_name}} {{course.person.last_name}}</td>
-        <td>{{course.start | date:'dd.MM.yyy HH:mm' }}</td>
-        <td>{{course.end | date:'dd.MM.yyy HH:mm' }}</td>
+        <td ><b>{{course.title}}</b> (Typ: {{course.coursegroup.course.category}})<br><i>Kursgruppe: {{course.coursegroup.course.name}}</i></td>
+<!-- Livebetrieb nur der Vortragende, der sich angemeldet hat -->
+<!--        <td>{{course.person.title}} {{course.person.first_name}} {{course.person.last_name}}</td> -->
+        <td>{{course.start | date:'dd.MM.yyy HH:mm' }} - {{course.end | date:'dd.MM.yyy HH:mm' }}</td>
         <td class="action">
-          <button (click)="startCourseFrom(course.id, course.room.id)"  mat-button color="primary" *ngIf="!startedCourse">Kurs starten</button>
-          <span *ngIf="startedCourse">Kurs gestartet</span>
+          <button (click)="startCourse(course.id, course.room.id)"  mat-button color="primary" *ngIf="!startedCourseOnlineHolding"><i class="material-icons startCourse">play_arrow</i>Kurs starten</button>
+          <button (click)="finishCourse()"  mat-button color="primary" *ngIf="startedCourseOnlineHolding"><i class="material-icons stopCourse">stop</i>Kurs beenden</button>
+<!--
+            <span *ngIf="startedCourseOnlineHolding">Kurs gestartet</span>
+-->
         </td>
       </tr>
     </tbody>
+    <tfoot>
+      <td colspan="5">
+        <paging #pagingComp (onPageChange)="onPageChange($event)">
+        </paging>
+      </td>
+    </tfoot>
   </table>
-  <paging #pagingComp (onPageChange)="onPageChange($event)">
-  </paging>
   <div *ngIf="coursesArray.length < 1 && allRoomSearch == false">
     <td-message label="Information!" sublabel="Es wurde für diese Raum derzeit kein Kurs gefunden, der in den nächsten 15 Minuten anfangen wird!" color="accent" icon="info"></td-message>
     <br>
-    <button (click)="searchCourseInAllRooms()"  mat-button color="primary" *ngIf="!startedCourse"><mat-icon>search</mat-icon>Kurse in anderen Raum suchen (Zeitraum: +/- 7 Tage)</button>
+    <button (click)="searchCourseInAllRooms()"  mat-button color="primary" *ngIf="!startedCourseOnlineHolding"><mat-icon>search</mat-icon>Kurse in anderen Raum suchen (Zeitraum: +/- 7 Tage)</button>
   </div>
   <div *ngIf="coursesArray.length < 1 && allRoomSearch == true">
     <td-message label="Information!" sublabel="Es wurde für Ihre Suchoptionen kein Kurs gefunden!" color="accent" icon="info"></td-message>
+  </div>
+
+  <div *ngIf="startedCourseOnlineHolding" class="StudentList">
+    <h4><i class="material-icons">supervisor_account</i>  StudentInnen </h4>
+    <table td-data-table *ngIf="coursesArray.length > 0">
+      <thead>
+        <tr td-data-table-column-row>
+          <th td-data-table-column *ngFor="let column of columsStudents">
+            {{column.label}}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr td-data-table-row *ngFor="let course of studentArray" >
+          <td><#ID#></td>
+          <td><#NAME#></td>
+          <td><#EINGESCHRIEBEN#></td>
+          <td><#BUTTON#></td>
+        </tr>
+      </tbody>
+    </table>
+    <div *ngIf="studentArray.length < 1">
+      <td-message label="Information!" sublabel="Es sind für Ihren Kurs noch keine StudentInnen eingeschrieben!" color="accent" icon="info"></td-message>
+    </div>
   </div>
 </div>
