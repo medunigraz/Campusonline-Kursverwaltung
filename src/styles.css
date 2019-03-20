@@ -107,7 +107,7 @@ table tbody tr.selectedCourse {
   color: #45AB34;
 }
 */
-table tbody tr.selectedCourse {
+table tbody tr:last-child {
   border: none;
 }
 
@@ -126,4 +126,8 @@ table tbody tr.unSelectedCourse {
 
 div.StudentList {
   margin-top: 20px;
+}
+
+div#runningCourse {
+  margin-bottom: 20px;
 }

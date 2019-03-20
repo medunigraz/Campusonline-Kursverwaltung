@@ -47,6 +47,7 @@ export class CourseListComponent implements OnInit {
   private studentArray = [];
   startedCourseOnlineHolding : CampusOnlineHoldings;
   startedCourse;
+  private runningCourse: boolean= false;
 
   private timeOut;
   private allRoomSearch: boolean  = false;
@@ -82,7 +83,6 @@ export class CourseListComponent implements OnInit {
             data = dataReturn;
             this.startedCourseOnlineHolding = data;
             this.getCourseById();
-            this.activateRowInTable();
           },
           (err) => {
             console.log(err);
@@ -177,12 +177,12 @@ export class CourseListComponent implements OnInit {
             if(data.count > 0) {
               this.startedCourse = course;
               this.startedCourseOnlineHolding = data.results[0];
+              this.runningCourse = true;
             }
 
             if(counter == this.coursesArray.length) {
               if(this.startedCourseOnlineHolding) {
                 this.getCourseById();
-                this.activateRowInTable();
               }
               this.toggleOverlayStarSyntax();
             }
@@ -203,6 +203,7 @@ export class CourseListComponent implements OnInit {
           if(data.results.length > 0) {
             this.startedCourseOnlineHolding = data.results[0];
             this.getCourseById();
+            this.runningCourse = true;
           } else {
             this.searchRoomName.setValue("");
             this.searchCourseName.setValue("");
@@ -240,21 +241,6 @@ export class CourseListComponent implements OnInit {
         }
       );
   }
-
-  activateRowInTable() {
-    if(!this.startedCourseOnlineHolding.finished) {
-      let unSelectedCourseElement;
-      let unSelectedCourseElements = document.getElementsByClassName('ng-star-inserted');
-      for (var i = 0; i < unSelectedCourseElements.length; i++) {
-          unSelectedCourseElement = document.getElementById(unSelectedCourseElements[i].id);
-          if(unSelectedCourseElement && unSelectedCourseElement.toString().search("Kurs_")) {
-            unSelectedCourseElement.className = 'ng-star-inserted unSelectedCourse';
-          }
-      }
-      let selectedCourseElement = document.getElementById('Kurs_' + this.startedCourseOnlineHolding.course_group_term);
-      selectedCourseElement.className = 'ng-star-inserted selectedCourse';
-    }
-}
 
   onPageChange(eventLinks: IPageChangeEvent) {
     this.offset = eventLinks.fromRow - 1;

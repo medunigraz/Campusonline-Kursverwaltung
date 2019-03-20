@@ -30,6 +30,9 @@
       </mat-grid-list>
     </form>
   </div>
+  <div *ngIf="runningCourse" id="runningCourse">
+    <td-message label="Warnung!" sublabel="Es wurde folgender Kurs gefunden, den Sie gestartet haben, ohne diesen vor dem Schließen des Browsers zu beenden!" color="warn" icon="info"></td-message>
+  </div>
   <table td-data-table width="90%">
     <thead *ngIf="coursesArray.length > 0 && !startedCourseOnlineHolding">
       <tr td-data-table-column-row id="trHead">
@@ -78,7 +81,7 @@
 
   <div *ngIf="startedCourseOnlineHolding" class="StudentList">
     <h4><i class="material-icons">supervisor_account</i>  StudentInnen </h4>
-    <table td-data-table *ngIf="coursesArray.length > 0">
+    <table td-data-table *ngIf="coursesArray.length > 0 && studentArray.length > 0">
       <thead>
         <tr td-data-table-column-row>
           <th td-data-table-column *ngFor="let column of columsStudents">
