@@ -1,14 +1,25 @@
-import { Component, OnInit, ViewChild, Renderer2, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild, Renderer2, ElementRef, ViewContainerRef  } from '@angular/core';
 import {Router, ActivatedRoute, Params} from '@angular/router';
 import {FormGroup, Validators, FormBuilder, FormControl} from "@angular/forms";
 import { IPageChangeEvent } from '@covalent/core/paging';
+import { TdDialogService } from '@covalent/core/dialogs';
+
+import { Subscription, Observable } from 'rxjs';
+import {map, startWith} from 'rxjs/operators';
+import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from '@angular/material/core';
 
 import {CourseService } from '../services/course.service';
+import {RoomService } from '../services/room.service';
 import { ITdDataTableColumn } from '@covalent/core/data-table';
 import { TdLoadingService } from '@covalent/core/loading';
 
 import {CampusOnlineHoldings} from '../base/campusonlineholding';
+import {Room} from '../base/room';
 import {PagingComponent} from '../paging/paging.component';
+
+export interface User {
+  presentation: string;
+}
 
 @Component({
   selector: 'courseList',
@@ -45,6 +56,9 @@ export class CourseListComponent implements OnInit {
 
   private coursesArray = [];
   private studentArray = [];
+
+  options: Room[];
+
   startedCourseOnlineHolding : CampusOnlineHoldings;
   startedCourse;
   private runningCourse: boolean= false;
@@ -54,13 +68,20 @@ export class CourseListComponent implements OnInit {
 
   searchCourseName = new FormControl();
   searchRoomName = new FormControl();
+  searchDate = new FormControl();
+
+
+  filteredOptions: Observable<Room[]>;
 
   constructor(
     formBuilder: FormBuilder,
     private activatedRoute: ActivatedRoute,
     private courseService: CourseService,
+    private roomService: RoomService,
     private renderer: Renderer2,
-    private _loadingService: TdLoadingService
+    private _loadingService: TdLoadingService,
+    private _dialogService: TdDialogService,
+    private _viewContainerRef: ViewContainerRef
   ) {
     // subscribe to router event
     this.activatedRoute.queryParams.subscribe((params: Params) => {
@@ -72,16 +93,55 @@ export class CourseListComponent implements OnInit {
   ngOnInit() {
     this.toggleOverlayStarSyntax();
     this.checkCourseIsRunningInRoom();
+
+    this.filteredOptions = this.searchRoomName.valueChanges
+      .pipe(
+        startWith<string | Room>(''),
+        map(value => typeof value === 'string' ? value : value.presentation),
+        map(presentation => presentation ? this._filter(presentation) : this.options.slice())
+      );
+
+    this.getRoomsForFilter("");
+    //setInterval(() => { this.getStudentList(); }, 20000 );
+  }
+
+
+  displayFn(room?: Room): string | undefined {
+    return room ? room.presentation : undefined;
+  }
+
+  private _filter(presentation: string): Room[] {
+    const filterValue = presentation.toLowerCase();
+
+    //return this.options.filter(option => option.presentation.toLowerCase().indexOf(filterValue) === 0);
+    return this.options.filter(option => option.presentation.toLowerCase().includes(filterValue));
+  }
+
+  getStudentList() {
+    let test = new Date;
+    console.log(test.toString());
   }
 
   startCourse(id: string, roomId: number) {
     let data;
 
-    this.courseService.startCourseForRoom(id, roomId)
+    this.courseService.createCampusOnlineHolding(id, roomId)
         .subscribe(
           (dataReturn) => {
             data = dataReturn;
+            console.log(data);
             this.startedCourseOnlineHolding = data;
+
+            this.courseService.startCourse(this.startedCourseOnlineHolding)
+              .subscribe(
+                (dataReturn2) => {
+                  console.log(dataReturn2);
+                },
+                (err2) => {
+                  console.log(err2);
+                }
+              );
+
             this.getCourseById();
           },
           (err) => {
@@ -91,9 +151,7 @@ export class CourseListComponent implements OnInit {
   }
 
   finishCourse() {
-      let currentTime = new Date();
-      let finishedTime: string = currentTime.toISOString().split(".")[0] + "+01:00";
-      this.courseService.finishCourse(this.startedCourseOnlineHolding, finishedTime)
+      this.courseService.finishCourse(this.startedCourseOnlineHolding)
           .subscribe(
             (dataReturn) => {
               console.log(dataReturn);
@@ -104,38 +162,116 @@ export class CourseListComponent implements OnInit {
           );
   }
 
+  cancelCourse() {
+    this._dialogService.openConfirm({
+      message: 'Wollen Sie diesen Kurs wirklich abbrechen? Der Kurs wird danach aus dem System entfernt! ',
+      disableClose: false, // defaults to false
+      viewContainerRef: this._viewContainerRef, //OPTIONAL
+      title: 'Kurs abbrechen', //OPTIONAL, hides if not provided
+      cancelButton: 'Nein', //OPTIONAL, defaults to 'CANCEL'
+      acceptButton: 'Ja', //OPTIONAL, defaults to 'ACCEPT'
+      width: '500px', //OPTIONAL, defaults to 400px
+    }).afterClosed().subscribe((accept: boolean) => {
+      if (accept) {
+        console.log("JA");
+        this.courseService.cancelCourse(this.startedCourseOnlineHolding)
+          .subscribe(
+            (dataReturn) => {
+              console.log(dataReturn);
+            },
+            (err) => {
+              console.log(err);
+            }
+          );
+      } else {
+        console.log("NEIN");
+      }
+    });
+  }
+
   onSearchCourseNameKeyUp() {
       clearTimeout(this.timeOut);
       this.timeOut = setTimeout(
               () => {
+                this.offset = 0;
                 this.getCourses(this.raumId);
           }, 700
       );
   }
 
-  onSearchRoomNameKeyUp() {
+  getRoomsForFilter(filter: string) {
+    let data;
+    this.roomService.getRoom(filter)
+        .subscribe(
+          (dataReturn) => {
+            data = dataReturn;
+//            console.log(data.results);
+            this.options = data.results;
+          },
+          (err) => {
+            console.log(err);
+          }
+        );
+  }
+
+  onSearchRoomNameChange() {
+      let data;
       clearTimeout(this.timeOut);
       this.timeOut = setTimeout(
               () => {
-                this.getCourses(this.raumId);
+                if(this.searchRoomName.value) {
+                  this.roomService.getRoomById(this.searchRoomName.value.id)
+                    .subscribe(
+                      (dataReturn) => {
+                        data = dataReturn;
+                        this.raumId = data.properties.campusonline.id;
+                        this.offset = 0;
+                        this.getCourses(this.raumId);
+                      },
+                      (err) => {
+                        console.log(err);
+                      }
+                    );
+                } else {
+                  this.raumId = 0;
+                  this.getCourses(this.raumId);
+                }
           }, 700
       );
   }
 
+  onSearchDateChange() {
+    this.offset = 0;
+    this.searchCourseInAllRooms();
+  }
+
   searchCourseInAllRooms() {
-    this.raumId = 0;
+    if(this.searchRoomName.value == "") {
+      this.raumId = 0;
+    }
 
-    let startGTDate = new Date(); //Start 2018-01-17T09:30:00+01:00
-    startGTDate.setDate(startGTDate.getDate() - 7);
-    startGTDate.setMinutes("00");
-    startGTDate.setHours("00");
-    let startLTDate = new Date();
-    startLTDate.setDate(startLTDate.getDate() + 7);
-    startLTDate.setMinutes("59");
-    startLTDate.setHours("23");
+    console.log(this.searchDate.value);
+    if(this.searchDate.value) {
+        this.searchDate.value.setHours(0);
+        this.startGT = this.searchDate.value.toISOString().split(".")[0];
+        this.searchDate.value.setHours(23);
+        this.searchDate.value.setMinutes(59);
+        this.startLT = this.searchDate.value.toISOString().split(".")[0];
 
-    this.startGT = startGTDate.toISOString().split(".")[0];
-    this.startLT = startLTDate.toISOString().split(".")[0];
+        this.getCourses(this.raumId);
+    } else {
+      let startGTDate = new Date(); //Start 2018-01-17T09:30:00+01:00
+      startGTDate.setDate(startGTDate.getDate() - 6);
+      startGTDate.setMinutes(0);
+      startGTDate.setHours(0);
+      let startLTDate = new Date();
+      startLTDate.setDate(startLTDate.getDate() + 7);
+      startLTDate.setMinutes(59);
+      startLTDate.setHours(23);
+
+      this.startGT = startGTDate.toISOString().split(".")[0];
+      this.startLT = startLTDate.toISOString().split(".")[0];
+    }
 
     this.getCourses(this.raumId);
     this.allRoomSearch = true;
@@ -144,7 +280,7 @@ export class CourseListComponent implements OnInit {
   getCourses(raumNr: number) {
     this.toggleOverlayStarSyntax();
     let data;
-    this.courseService.getCourses(this.offset, raumNr, this.startGT, this.startLT, this.searchRoomName.value, this.searchCourseName.value)
+    this.courseService.getCourses(this.offset, raumNr, this.startGT, this.startLT, this.searchCourseName.value)
         .subscribe(
           (dataReturn) => {
             data = dataReturn;
@@ -255,5 +391,9 @@ export class CourseListComponent implements OnInit {
       }
       this.overlayStarSyntax = !this.overlayStarSyntax;
     }
+
+  checkoutStudent() {
+    console.log("CHECKOUT");
+  }
 
 }

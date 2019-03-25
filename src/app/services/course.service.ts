@@ -22,15 +22,13 @@ export class CourseService {
 
   }
 
-  getCourses(offset: number, roomNr: number, startGT: string, startLT: string, roomTitle: String, courseName: String): Observable<Object> {
+  getCourses(offset: number, roomNr: number, startGT: string, startLT: string, courseName: String): Observable<Object> {
 
     let paramsUrl = "?offset=" + offset + "&start__gte=" + startGT + "&start__lte=" + startLT;
     if(roomNr != 0) {
       paramsUrl += "&room=" + roomNr;
     }
-    if(roomTitle != "") {
-      paramsUrl += "&room_title=" + roomTitle;
-    }
+    
     if(courseName != "") {
       paramsUrl += "&title__icontains=" + courseName;
     }
@@ -46,11 +44,17 @@ export class CourseService {
       return this.http.get(url, this.headers);
   }
 
-  startCourseForRoom(courseId: string, roomId: number) {
+  createCampusOnlineHolding(courseId: string, roomId: number) {
     let url = this.apiURL + "attendance/campusonlineholding/";
     var parameter = JSON.stringify({"course_group_term": courseId, "room": roomId, "entries": [], "state": "running"});
 
     return this.http.post(url, parameter, this.headers);
+  }
+
+  startCourse(course: CampusOnlineHoldings) {
+    let url = this.apiURL + "attendance/campusonlineholding/"+course.id+"/transition/";
+    console.log(url);
+    return this.http.request("START", url, this.headers);
   }
 
   checkCourseIsRunning(courseId: string) {
@@ -68,11 +72,16 @@ export class CourseService {
 
   }
 
-  finishCourse(course: CampusOnlineHoldings, finished: string) {
-    let url = this.apiURL + "attendance/campusonlineholding/"+course.id+"/";
-    var parameter = JSON.stringify({"course_group_term": course.course_group_term, "id": course.id, "room": course.room, "entries": course.entries, "finished": finished, "state": "finished", "initiated": course.initiated});
+  finishCourse(course: CampusOnlineHoldings) {
+    let url = this.apiURL + "attendance/campusonlineholding/"+course.id+"/transition/";
+    console.log(url);
+    return this.http.request("END", url, this.headers);
+  }
 
-    return this.http.put(url, parameter, this.headers);
+  cancelCourse(course: CampusOnlineHoldings) {
+    let url = this.apiURL + "attendance/campusonlineholding/"+course.id+"/transition/";
+    console.log(url);
+    return this.http.request("CANCEL", url, this.headers);
   }
 
 }

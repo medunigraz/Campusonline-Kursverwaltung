@@ -8,26 +8,56 @@ body {
   src: url("./assets/fonts/SyntaxLTStd-Roman.otf") format("opentype");
 }
 
-h1, h4 {
+h1, h2, h3, h4 {
   color: grey;
 }
 
-button.mat-button span{
+h3 i {
+  vertical-align: middle;
+  padding-bottom: 5px;
+}
+
+button.mat-button  {
+  border-style: solid;
+  border-width: 1px;
+  border-color: grey;
+  background-color: white;
+}
+
+button.mat-primary span, button.mat-warn span, button.mat-accent span, button.mat-button span {
   font-weight: bold;
   font-size: 14px;
 }
 
-button.mat-button {
+td-dialog-actions button.mat-button span {
+  color: grey;
+}
+
+td-dialog-actions button.mat-accent span, .td-paging-bar-navigation button.mat-accent span {
+  color: #45AB34;
+}
+
+button.mat-primary, td-dialog-actions button.mat-accent {
   border-style: solid;
   border-width: 1px;
   border-color: #45AB34;
 }
 
-button.mat-button:hover {
+button.mat-warn:hover {
+  background-color: #e53935;
+}
+
+button.mat-warn {
+  border-style: solid;
+  border-width: 1px;
+  border-color: #e53935;
+}
+
+button.mat-primary:hover, td-dialog-actions button.mat-accent:hover {
   background-color: #45AB34;
 }
 
-button.mat-button:hover span {
+button.mat-primary:hover span, button.mat-warn:hover span, td-dialog-actions button.mat-accent:hover span {
   color: white;
 }
 
@@ -76,7 +106,7 @@ table thead tr th {
   color: grey;
   text-align: center;
 }
-table thead tr, table tbody tr  {
+table.mat-table thead tr, table.mat-table tbody tr  {
   border-bottom-style: solid;
   border-bottom-width: 1px;
   border-bottom-color: #e0e0e0;
@@ -84,7 +114,7 @@ table thead tr, table tbody tr  {
 }
 table thead tr th, table tbody tr td {
   padding: 5px 15px 5px 15px;
-  vertical-align: top;
+  vertical-align: middle;
 }
 
 table tbody tr td.class p {
@@ -92,7 +122,11 @@ table tbody tr td.class p {
   margin: 0px;
 }
 
-table tbody tr:hover {
+table tbody tr.CourseInfo:hover {
+  color: #45AB34;
+}
+
+table tbody tr.studentTable:hover {
   color: #45AB34;
 }
 
@@ -148,4 +182,32 @@ div#runningCourse {
 
 .right {
   width: 60%;
+}
+
+table.studentTable tr th, table.studentTable tr td {
+  vertical-align: middle;
+}
+
+table.studentTable tr td button i.material-icons {
+  padding-bottom: 1px;
+}
+
+.mat-calendar-body-today:not(.mat-calendar-body-selected) {
+    border-color: #45AB34 !important;
+}
+
+.mat-calendar-body-selected {
+    color: white !important;
+}
+
+td-dialog-title {
+  color: #e53935;
+}
+
+td-dialog-content span {
+  color: #000 !important;
+}
+
+.mat-form-field-infix {
+  width: 400px !important;
 }

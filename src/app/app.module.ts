@@ -14,6 +14,7 @@ import { NgModule, APP_INITIALIZER  } from '@angular/core';
 import { OAuthModule } from 'angular-oauth2-oidc';
 
 import { CourseService } from './services/course.service';
+import { RoomService } from './services/room.service';
 import { AppLoadService } from './services/app-load.service';
 
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -30,13 +31,16 @@ import { CovalentMessageModule } from '@covalent/core/message';
 import { CovalentPagingModule } from '@covalent/core/paging';
 import { CovalentLoadingModule } from '@covalent/core/loading';
 import { CovalentExpansionPanelModule } from '@covalent/core/expansion-panel';
+import { CovalentDialogsModule } from '@covalent/core/dialogs';
 
-import {MatButtonModule} from '@angular/material';
+import {MatButtonModule, MatNativeDateModule} from '@angular/material';
 import {MatMenuModule} from '@angular/material/menu'
 import {MatListModule} from '@angular/material/list';
 import {MatIconModule} from '@angular/material/icon';
 import {MatInputModule} from '@angular/material/input';
 import {MatGridListModule} from '@angular/material/grid-list';
+import {MatDatepickerModule} from '@angular/material/datepicker';
+import {MatAutocompleteModule} from '@angular/material/autocomplete';
 
 import { AppComponent } from './app.component';
 
@@ -68,7 +72,9 @@ export function get_login(appLoadService: AppLoadService) {
     MatIconModule,
     MatInputModule,
     MatGridListModule,
-
+    MatDatepickerModule,
+    MatNativeDateModule,
+    MatAutocompleteModule,
 
     CovalentLayoutModule,
     CovalentStepsModule,
@@ -80,11 +86,13 @@ export function get_login(appLoadService: AppLoadService) {
     CovalentPagingModule,
     CovalentLoadingModule,
     CovalentExpansionPanelModule,
+    CovalentDialogsModule,
 
     OAuthModule.forRoot()
   ],
   providers: [
     CourseService,
+    RoomService,
     AppLoadService,
     {
       provide: APP_INITIALIZER,
