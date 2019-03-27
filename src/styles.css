@@ -61,8 +61,16 @@ button.mat-primary:hover span, button.mat-warn:hover span, td-dialog-actions but
   color: white;
 }
 
-button i.startCourse, button i.stopCourse {
+button i.startCourse, button i.stopCourse, button i.cancleCourse {
   padding-bottom:  2px;
+}
+
+button i.startCourse {
+  margin-right: 1px;
+}
+
+button i.cancleCourse {
+  margin-right: 4px;
 }
 
 mat-toolbar {

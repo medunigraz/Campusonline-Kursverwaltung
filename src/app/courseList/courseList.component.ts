@@ -62,6 +62,8 @@ export class CourseListComponent implements OnInit {
   startedCourseOnlineHolding : CampusOnlineHoldings;
   startedCourse;
   private runningCourse: boolean= false;
+  private cancelCourse: boolean= false;
+  private finsihCourse: boolean= false;
 
   private timeOut;
   private allRoomSearch: boolean  = false;
@@ -69,6 +71,8 @@ export class CourseListComponent implements OnInit {
   searchCourseName = new FormControl();
   searchRoomName = new FormControl();
   searchDate = new FormControl();
+  minDate;
+  maxDate;
 
 
   filteredOptions: Observable<Room[]>;
@@ -81,8 +85,11 @@ export class CourseListComponent implements OnInit {
     private renderer: Renderer2,
     private _loadingService: TdLoadingService,
     private _dialogService: TdDialogService,
-    private _viewContainerRef: ViewContainerRef
+    private _viewContainerRef: ViewContainerRef,
+    private dateAdapter: DateAdapter<Date>
   ) {
+
+    this.dateAdapter.setLocale('de-DE');
     // subscribe to router event
     this.activatedRoute.queryParams.subscribe((params: Params) => {
       this.raumId = params['raum'];
@@ -119,7 +126,6 @@ export class CourseListComponent implements OnInit {
 
   getStudentList() {
     let test = new Date;
-    console.log(test.toString());
   }
 
   startCourse(id: string, roomId: number) {
@@ -129,13 +135,14 @@ export class CourseListComponent implements OnInit {
         .subscribe(
           (dataReturn) => {
             data = dataReturn;
-            console.log(data);
+            //console.log(data);
             this.startedCourseOnlineHolding = data;
 
             this.courseService.startCourse(this.startedCourseOnlineHolding)
               .subscribe(
                 (dataReturn2) => {
                   console.log(dataReturn2);
+                  this.cancelCourse = false;
                 },
                 (err2) => {
                   console.log(err2);
@@ -155,6 +162,9 @@ export class CourseListComponent implements OnInit {
           .subscribe(
             (dataReturn) => {
               console.log(dataReturn);
+              this.finsihCourse = true;
+              this.startedCourseOnlineHolding = null;
+              this.coursesArray = [];
             },
             (err) => {
               console.log(err);
@@ -162,7 +172,7 @@ export class CourseListComponent implements OnInit {
           );
   }
 
-  cancelCourse() {
+  cancelRunningCourse() {
     this._dialogService.openConfirm({
       message: 'Wollen Sie diesen Kurs wirklich abbrechen? Der Kurs wird danach aus dem System entfernt! ',
       disableClose: false, // defaults to false
@@ -173,11 +183,15 @@ export class CourseListComponent implements OnInit {
       width: '500px', //OPTIONAL, defaults to 400px
     }).afterClosed().subscribe((accept: boolean) => {
       if (accept) {
-        console.log("JA");
+        //console.log("JA");
         this.courseService.cancelCourse(this.startedCourseOnlineHolding)
           .subscribe(
             (dataReturn) => {
-              console.log(dataReturn);
+              this.cancelCourse = true;
+              this.allRoomSearch = true;
+              this.startedCourseOnlineHolding = null;
+              this.coursesArray = [];
+              this.getCourses(this.raumId);
             },
             (err) => {
               console.log(err);
@@ -242,6 +256,17 @@ export class CourseListComponent implements OnInit {
 
   onSearchDateChange() {
     this.offset = 0;
+
+    let tmpStart = this.searchDate.value;
+    tmpStart.setMinutes(tmpStart.getMinutes() - tmpStart.getTimezoneOffset());
+
+    tmpStart.setMinutes(1);
+    this.startGT = tmpStart.toISOString().split(".")[0];
+
+    tmpStart.setMinutes(59);
+    tmpStart.setHours(23);
+    this.startLT = tmpStart.toISOString().split(".")[0];
+
     this.searchCourseInAllRooms();
   }
 
@@ -250,22 +275,15 @@ export class CourseListComponent implements OnInit {
       this.raumId = 0;
     }
 
-    console.log(this.searchDate.value);
-    if(this.searchDate.value) {
-        this.searchDate.value.setHours(0);
-        this.startGT = this.searchDate.value.toISOString().split(".")[0];
-        this.searchDate.value.setHours(23);
-        this.searchDate.value.setMinutes(59);
-        this.startLT = this.searchDate.value.toISOString().split(".")[0];
-
-        this.getCourses(this.raumId);
-    } else {
+    if(!this.searchDate.value) {
       let startGTDate = new Date(); //Start 2018-01-17T09:30:00+01:00
       startGTDate.setDate(startGTDate.getDate() - 6);
+      this.minDate = startGTDate;
       startGTDate.setMinutes(0);
       startGTDate.setHours(0);
       let startLTDate = new Date();
       startLTDate.setDate(startLTDate.getDate() + 7);
+      this.maxDate = startLTDate;
       startLTDate.setMinutes(59);
       startLTDate.setHours(23);
 
@@ -275,6 +293,7 @@ export class CourseListComponent implements OnInit {
 
     this.getCourses(this.raumId);
     this.allRoomSearch = true;
+    this.cancelCourse = false;
   }
 
   getCourses(raumNr: number) {
@@ -371,6 +390,7 @@ export class CourseListComponent implements OnInit {
           this.coursesArray[0] = data;
           this.startedCourse = data;
           this.pagingComponent.setPagingDatas(data.count);
+          this.allRoomSearch = false;
         },
         (err) => {
           console.log(err);

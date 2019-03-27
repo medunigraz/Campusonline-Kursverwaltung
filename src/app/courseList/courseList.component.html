@@ -1,8 +1,12 @@
 <h1>
   <mat-icon>school</mat-icon>  Campusonline Kursverwaltung
 </h1>
+<div *ngIf="cancelCourse == true">
+  <td-message label="Warnung!" sublabel="Der von Ihnen gestartete Kurs wurde abgebrochen!" color="warn" icon="info"></td-message><br />
+</div>
+
 <div *tdLoading="'overlayStarSyntax'; mode:'indeterminate'; type:'circle'; strategy:'overlay'; color:'accent'">
-  <div class="filter" *ngIf="!startedCourseOnlineHolding">
+  <div class="filter" *ngIf="!startedCourseOnlineHolding ">
     <form class="content" (ngSubmit)="searchCourseInAllRooms()" #SearchForm="ngForm" *ngIf="allRoomSearch == true ">
       <mat-grid-list cols="3" rowHeight="65">
         <mat-grid-tile width="200">
@@ -39,6 +43,8 @@
           <mat-form-field>
             <input
               matInput
+              [min]="minDate"
+              [max]="maxDate"
               [formControl]="searchDate"
               placeholder="Datum"
               (dateChange)="onSearchDateChange()"
@@ -89,7 +95,7 @@
           <td class="action">
             <button (click)="startCourse(course.id, course.room.id)"  mat-button color="primary" *ngIf="!startedCourseOnlineHolding"><i class="material-icons startCourse">play_arrow</i>Kurs starten</button>
             <button (click)="finishCourse()"  mat-button color="primary" *ngIf="startedCourseOnlineHolding"><i class="material-icons stopCourse">stop</i>Kurs beenden</button> &nbsp;
-            <button (click)="cancelCourse()"  mat-button color="warn" *ngIf="startedCourseOnlineHolding"><i class="material-icons stopCourse">cancel</i>Kurs abbrechen</button>
+            <button (click)="cancelRunningCourse()"  mat-button color="warn" *ngIf="startedCourseOnlineHolding"><i class="material-icons cancleCourse">cancel</i>Kurs abbrechen</button>
           </td>
         </tr>
         <tr class="StudentColumn">
@@ -128,12 +134,17 @@
     </tfoot>
   </table>
   </td-expansion-panel-group>
-  <div *ngIf="coursesArray.length < 1 && allRoomSearch == false">
+  <div *ngIf="coursesArray.length < 1 && allRoomSearch == false && cancelCourse == false && finsihCourse == false">
     <td-message label="Information!" sublabel="Es wurde für diese Raum derzeit kein Kurs gefunden, der in den nächsten 15 Minuten anfangen wird!" color="accent" icon="info"></td-message>
     <br>
     <button (click)="searchCourseInAllRooms()"  mat-button color="primary" *ngIf="!startedCourseOnlineHolding"><mat-icon>search</mat-icon>Kurse in anderen Raum suchen (Zeitraum: +/- 7 Tage)</button>
   </div>
-  <div *ngIf="coursesArray.length < 1 && allRoomSearch == true">
+  <div *ngIf="coursesArray.length < 1 && allRoomSearch == true && cancelCourse == false && finsihCourse == false">
     <td-message label="Information!" sublabel="Es wurde für Ihre Suchoptionen kein Kurs gefunden!" color="accent" icon="info"></td-message>
+  </div>
+
+
+  <div *ngIf="finsihCourse == true">
+    <td-message label="Information!" sublabel="Der von Ihnen gestartete Kurs wurde erfolgreich beendet!" color="accent" icon="info"></td-message>
   </div>
 </div>
