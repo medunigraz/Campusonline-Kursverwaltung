@@ -20,11 +20,13 @@ export class RoomService {
         };
   }
 
-  getRoom(filter: string) {
-    let url = this.apiURL + "api/autocomplete/?m=geo.Room&limit=10000";
-    if(filter != "") {
-      url += "&q=" + filter;
-    }
+  getRoom(next: string = "") {
+    let url;
+    if(next == "") {
+      url = this.apiURL + "api/autocomplete/?m=geo.Room";
+    } else {
+      url = next;
+    }  
     return this.http.get(url, this.headers);
   }
 

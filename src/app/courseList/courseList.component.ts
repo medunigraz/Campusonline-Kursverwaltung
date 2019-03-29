@@ -57,7 +57,7 @@ export class CourseListComponent implements OnInit {
   private coursesArray = [];
   private studentArray = [];
 
-  options: Room[];
+  options: Room[] = [];
 
   startedCourseOnlineHolding : CampusOnlineHoldings;
   startedCourse;
@@ -213,14 +213,22 @@ export class CourseListComponent implements OnInit {
       );
   }
 
-  getRoomsForFilter(filter: string) {
+  getRoomsForFilter(next: string = "") {
     let data;
-    this.roomService.getRoom(filter)
+    this.roomService.getRoom(next)
         .subscribe(
           (dataReturn) => {
-            data = dataReturn;
-//            console.log(data.results);
-            this.options = data.results;
+            data = dataReturn
+            
+            //this.options = data.results;
+
+            data.results.map(val => this.options.push(val));
+
+            if(data.next) {
+              this.getRoomsForFilter(data.next);
+            } else {
+              console.log(this.options);
+            }
           },
           (err) => {
             console.log(err);
