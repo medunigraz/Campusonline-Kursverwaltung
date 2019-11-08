@@ -86,9 +86,14 @@ mat-toolbar span {
 }
 
 mat-toolbar .mat-icon.mat-icon-logo {
-  width: 73px;
-  height: 73px;
-  padding-top: 9px;
+  width: 269px;
+  height: 60px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+mat-toolbar.mat-toolbar {
+  /* background-color: #fff !important; */
 }
 
 .mat-toolbar-row, .mat-toolbar-single-row {

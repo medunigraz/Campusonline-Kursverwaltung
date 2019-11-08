@@ -10,11 +10,13 @@ import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from '@angular/material/
 
 import {CourseService } from '../services/course.service';
 import {RoomService } from '../services/room.service';
+import {StudentService } from '../services/student.service';
 import { ITdDataTableColumn } from '@covalent/core/data-table';
 import { TdLoadingService } from '@covalent/core/loading';
 
 import {CampusOnlineHoldings} from '../base/campusonlineholding';
 import {Room} from '../base/room';
+import {Student} from '../base/student';
 import {PagingComponent} from '../paging/paging.component';
 
 export interface User {
@@ -39,13 +41,16 @@ export class CourseListComponent implements OnInit {
 */
 
   columsStudents: ITdDataTableColumn[] = [
-      { name: 'ID',  label: 'ID', width: 150 },
-      { name: 'Name',  label: 'Name', width: 150 },
-      { name: 'Eingeschrieben', label: 'Eingeschrieben', width: 250},
-      { name: '', label: ''}
+      //{ name: 'ID',  label: 'ID', width: 150 },
+      { name: 'Titel',  label: 'Titel', width: 150 }
+      , { name: 'Name',  label: 'Name', width: 150 }
+      , { name: 'Eingeschrieben', label: 'Eingeschrieben', width: 250}
+      , { name: '', label: ''}
   ];
 
-  @ViewChild('pagingComp') pagingComponent: PagingComponent;
+  arrStudents: Student[] = [];
+
+  @ViewChild('pagingComp', {static: false}) pagingComponent: PagingComponent;
 
   overlayStarSyntax: boolean = false;
 
@@ -82,6 +87,7 @@ export class CourseListComponent implements OnInit {
     private activatedRoute: ActivatedRoute,
     private courseService: CourseService,
     private roomService: RoomService,
+    private studentService: StudentService,
     private renderer: Renderer2,
     private _loadingService: TdLoadingService,
     private _dialogService: TdDialogService,
@@ -109,7 +115,7 @@ export class CourseListComponent implements OnInit {
       );
 
     this.getRoomsForFilter("");
-    //setInterval(() => { this.getStudentList(); }, 20000 );
+    setInterval(() => { this.getStudentList(); }, 5000 );
   }
 
 
@@ -125,7 +131,34 @@ export class CourseListComponent implements OnInit {
   }
 
   getStudentList() {
-    let test = new Date;
+    let data;
+    console.log(new Date);
+    if (this.startedCourseOnlineHolding) {
+      this.studentService.getStudentListFromCourseonlineholding(this.startedCourseOnlineHolding)
+        .subscribe(
+          (dataReturn) => {
+            data = dataReturn;
+            console.log(dataReturn.entries);
+            this.studentArray = []
+            for(let student of dataReturn.entries) {
+              //console.log(student);
+              let tmpStudent: Student = {
+                id: student.id,
+                title: student.student.title,
+                firstName: student.student.first_name,
+                lastName: student.student.last_name,
+                state: student.state
+              }
+              //console.log(tmpStudent);
+              this.studentArray.push(tmpStudent);
+            }
+            console.log(this.studentArray);
+          },
+          (err) => {
+            console.log(err);
+          }
+      );
+    }
   }
 
   startCourse(id: string, roomId: number) {
@@ -135,7 +168,7 @@ export class CourseListComponent implements OnInit {
         .subscribe(
           (dataReturn) => {
             data = dataReturn;
-            //console.log(data);
+            console.log(data);
             this.startedCourseOnlineHolding = data;
 
             this.courseService.startCourse(this.startedCourseOnlineHolding)
@@ -161,7 +194,7 @@ export class CourseListComponent implements OnInit {
       this.courseService.finishCourse(this.startedCourseOnlineHolding)
           .subscribe(
             (dataReturn) => {
-              console.log(dataReturn);
+              //console.log(dataReturn);
               this.finsihCourse = true;
               this.startedCourseOnlineHolding = null;
               this.coursesArray = [];
@@ -192,6 +225,7 @@ export class CourseListComponent implements OnInit {
               this.startedCourseOnlineHolding = null;
               this.coursesArray = [];
               this.getCourses(this.raumId);
+              this.runningCourse = false;
             },
             (err) => {
               console.log(err);
@@ -219,7 +253,7 @@ export class CourseListComponent implements OnInit {
         .subscribe(
           (dataReturn) => {
             data = dataReturn
-            
+
             //this.options = data.results;
 
             data.results.map(val => this.options.push(val));
@@ -227,7 +261,7 @@ export class CourseListComponent implements OnInit {
             if(data.next) {
               this.getRoomsForFilter(data.next);
             } else {
-              console.log(this.options);
+              //console.log(this.options);
             }
           },
           (err) => {
@@ -241,7 +275,8 @@ export class CourseListComponent implements OnInit {
       clearTimeout(this.timeOut);
       this.timeOut = setTimeout(
               () => {
-                if(this.searchRoomName.value) {
+                //console.log(this.searchRoomName.value);
+                if(this.searchRoomName.value.id) {
                   this.roomService.getRoomById(this.searchRoomName.value.id)
                     .subscribe(
                       (dataReturn) => {
@@ -307,7 +342,11 @@ export class CourseListComponent implements OnInit {
   getCourses(raumNr: number) {
     this.toggleOverlayStarSyntax();
     let data;
-    this.courseService.getCourses(this.offset, raumNr, this.startGT, this.startLT, this.searchCourseName.value)
+    let searchCourseName = this.searchCourseName.value;
+    if(this.searchCourseName.value === null)  {
+      searchCourseName = "";
+    }
+    this.courseService.getCourses(this.offset, raumNr, this.startGT, this.startLT, searchCourseName)
         .subscribe(
           (dataReturn) => {
             data = dataReturn;
@@ -341,8 +380,10 @@ export class CourseListComponent implements OnInit {
               this.startedCourse = course;
               this.startedCourseOnlineHolding = data.results[0];
               this.runningCourse = true;
-            }
 
+              this.getStudentList();
+            }
+console.log(this.startedCourseOnlineHolding );
             if(counter == this.coursesArray.length) {
               if(this.startedCourseOnlineHolding) {
                 this.getCourseById();
@@ -365,6 +406,7 @@ export class CourseListComponent implements OnInit {
           data = dataReturn;
           if(data.results.length > 0) {
             this.startedCourseOnlineHolding = data.results[0];
+            this.getStudentList();
             this.getCourseById();
             this.runningCourse = true;
           } else {
@@ -420,8 +462,33 @@ export class CourseListComponent implements OnInit {
       this.overlayStarSyntax = !this.overlayStarSyntax;
     }
 
-  checkoutStudent() {
-    console.log("CHECKOUT");
-  }
+  checkoutStudent(student: Student) {
+      this._dialogService.openConfirm({
+        message: 'Wollen Sie ' + student.lastName + ' '+ student.firstName + ' wirklich aus den Kurs entfernen? ',
+        disableClose: false, // defaults to false
+        viewContainerRef: this._viewContainerRef, //OPTIONAL
+        title: 'StudentIn entfernen', //OPTIONAL, hides if not provided
+        cancelButton: 'Nein', //OPTIONAL, defaults to 'CANCEL'
+        acceptButton: 'Ja', //OPTIONAL, defaults to 'ACCEPT'
+        width: '500px', //OPTIONAL, defaults to 400px
+      }).afterClosed().subscribe((accept: boolean) => {
+        if (accept) {
+          //console.log("JA");
+          this.studentService.checkoutStudentFromCourseOnlineEntrie(student.id)
+            .subscribe(
+              (dataReturn) => {
+                console.log("erfolgreich");
+                this.getStudentList();
+              },
+              (err) => {
+                console.log(err);
+              }
+            );
+        } else {
+          console.log("NEIN");
+        }
+      //console.log(id);
+    });
 
+  }
 }

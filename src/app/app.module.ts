@@ -15,6 +15,7 @@ import { OAuthModule } from 'angular-oauth2-oidc';
 
 import { CourseService } from './services/course.service';
 import { RoomService } from './services/room.service';
+import { StudentService } from './services/student.service';
 import { AppLoadService } from './services/app-load.service';
 
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -93,6 +94,7 @@ export function get_login(appLoadService: AppLoadService) {
   providers: [
     CourseService,
     RoomService,
+    StudentService, 
     AppLoadService,
     {
       provide: APP_INITIALIZER,

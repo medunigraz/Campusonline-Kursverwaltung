@@ -11,7 +11,7 @@ export class HeaderComponent  {
   constructor(private _iconRegistry: MatIconRegistry,
             private _domSanitizer: DomSanitizer) {
     this._iconRegistry.addSvgIconInNamespace('assets', 'sun',
-    this._domSanitizer.bypassSecurityTrustResourceUrl('assets/images/meduni_rundlogo.svg'));
+    this._domSanitizer.bypassSecurityTrustResourceUrl('assets/images/logo-icon.svg'));
 
   }
 }

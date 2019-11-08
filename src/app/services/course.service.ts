@@ -28,7 +28,7 @@ export class CourseService {
     if(roomNr != 0) {
       paramsUrl += "&room=" + roomNr;
     }
-    
+
     if(courseName != "") {
       paramsUrl += "&title__icontains=" + courseName;
     }
@@ -74,6 +74,8 @@ export class CourseService {
 
   finishCourse(course: CampusOnlineHoldings) {
     let url = this.apiURL + "attendance/campusonlineholding/"+course.id+"/transition/";
+
+    console.log("START URL");
     console.log(url);
     return this.http.request("END", url, this.headers);
   }
@@ -83,5 +85,4 @@ export class CourseService {
     console.log(url);
     return this.http.request("CANCEL", url, this.headers);
   }
-
 }
