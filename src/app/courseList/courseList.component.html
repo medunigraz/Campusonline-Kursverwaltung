@@ -60,7 +60,7 @@
     </form>
   </div>
   <div *ngIf="runningCourse" id="runningCourse">
-    <td-message label="Warnung!" sublabel="Es wurde folgender Kurs gefunden, den Sie gestartet haben, ohne diesen vor dem Schließen des Browsers zu beenden!" color="warn" icon="info"></td-message>
+    <td-message label="Warnung!" sublabel="Es wurde folgender Kurs gefunden, der in diesem Raum gestartet wurde, ohne diesen vor dem Schließen des Browsers zu beenden!" color="warn" icon="info"></td-message>
   </div>
   <td-expansion-panel-group [multi]="false" #panelGroup>
   <table td-data-table width="90%" class="mat-table">
@@ -111,9 +111,14 @@
                   </tr>
                 </thead>
                 <tbody>
-                    <td><#NAME#></td>
-                    <td><#EINGESCHRIEBEN#></td>
-                    <td><button (click)="checkoutStudent()"  mat-button color="primary" *ngIf="startedCourseOnlineHolding"><i class="material-icons">remove_circle_outline</i>Student aus Kurs entfernen</button></td>
+                  <tr td-data-table-row *ngFor="let student of studentArray"  class="studentTable">
+                    <!-- <td>student.id</td> -->
+                    <td>{{student.title}}</td>
+                    <td><b>{{student.lastName}}</b> {{student.firstName}}</td>
+                    <td>{{student.state}}</td>
+                    <td>
+                      <button (click)="checkoutStudent(student)"  mat-button color="primary" *ngIf="startedCourseOnlineHolding && student.state == 'assigned'"><i class="material-icons">remove_circle_outline</i>StudentIn {{student.lastName}} aus Kurs entfernen</button>
+                    </td>
                   </tr>
                 </tbody>
               </table>
