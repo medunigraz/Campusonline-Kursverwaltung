@@ -67,7 +67,7 @@ export class CourseListComponent implements OnInit {
   startedCourseOnlineHolding : CampusOnlineHoldings;
   startedCourse;
   private runningCourse: boolean= false;
-  private cancelCourse: boolean= false;
+  cancelCourse: boolean= false;
   private finsihCourse: boolean= false;
 
   private timeOut;
@@ -137,10 +137,10 @@ export class CourseListComponent implements OnInit {
       this.studentService.getStudentListFromCourseonlineholding(this.startedCourseOnlineHolding)
         .subscribe(
           (dataReturn) => {
-            data = dataReturn;
-            console.log(dataReturn.entries);
+            data = dataReturn as any;
+            //console.log(dataReturn.entries);
             this.studentArray = []
-            for(let student of dataReturn.entries) {
+            for(let student of data.entries) {
               //console.log(student);
               let tmpStudent: Student = {
                 id: student.id,
@@ -198,6 +198,8 @@ export class CourseListComponent implements OnInit {
               this.finsihCourse = true;
               this.startedCourseOnlineHolding = null;
               this.coursesArray = [];
+
+              //this.getCourses(this.raumId);
             },
             (err) => {
               console.log(err);

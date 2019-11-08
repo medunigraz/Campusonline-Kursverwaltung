@@ -26,7 +26,7 @@ export class StudentService {
     return this.http.get(url, this.headers);
   }
 
-  checkoutStudentFromCourseOnlineEntrie(id: string) {
+  checkoutStudentFromCourseOnlineEntrie(id: number) {
     let url = this.apiURL + "attendance/campusonlineentry/" + id + "/transition/";
     console.log(url);
     return this.http.request("DISCARD", url, this.headers);
