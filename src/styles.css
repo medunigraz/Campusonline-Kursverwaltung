@@ -17,11 +17,26 @@ h3 i {
   padding-bottom: 5px;
 }
 
-button.mat-button  {
+button.mat-button {
   border-style: solid;
   border-width: 1px;
-  border-color: grey;
+  border-color: #bcbdbc; /*grey;*/
   background-color: white;
+}
+.mat-button-focus-overlay {
+  background-color: transparent!important;
+}
+
+button.mat-button:hover  {
+  background-color: #bcbdbc;
+}
+
+button.KursAction {
+   width: 180px;
+}
+
+button.mat-button:hover span{
+  color: white;
 }
 
 button.mat-primary span, button.mat-warn span, button.mat-accent span, button.mat-button span {
@@ -30,17 +45,17 @@ button.mat-primary span, button.mat-warn span, button.mat-accent span, button.ma
 }
 
 td-dialog-actions button.mat-button span {
-  color: grey;
+  color: #bcbdbc /* grey; */
 }
 
 td-dialog-actions button.mat-accent span, .td-paging-bar-navigation button.mat-accent span {
-  color: #45AB34;
+  color: #34b233;
 }
 
 button.mat-primary, td-dialog-actions button.mat-accent {
   border-style: solid;
   border-width: 1px;
-  border-color: #45AB34;
+  border-color: #34b233;
 }
 
 button.mat-warn:hover {
@@ -54,7 +69,7 @@ button.mat-warn {
 }
 
 button.mat-primary:hover, td-dialog-actions button.mat-accent:hover {
-  background-color: #45AB34;
+  background-color: #34b233;
 }
 
 button.mat-primary:hover span, button.mat-warn:hover span, td-dialog-actions button.mat-accent:hover span {
@@ -117,7 +132,7 @@ table {
 
 table thead tr th {
   color: grey;
-  text-align: center;
+  text-align: left;/* center; */
 }
 table.mat-table thead tr, table.mat-table tbody tr  {
   border-bottom-style: solid;
@@ -136,23 +151,23 @@ table tbody tr td.class p {
 }
 
 table tbody tr.CourseInfo:hover {
-  color: #45AB34;
+  color: #34b233;
 }
 
 table tbody tr.studentTable:hover {
-  color: #45AB34;
+  color: #34b233;
 }
 
 /*
 table thead tr.trHeadSelectedCourse {
-  border-bottom-color: #45AB34;
+  border-bottom-color: #34b233;
 }
 
 table tbody tr.selectedCourse {
   border-style: solid;
   border-width: 1px;
-  border-color: #45AB34;
-  color: #45AB34;
+  border-color: #34b233;
+  color: #34b233;
 }
 */
 table tbody tr:last-child {
@@ -206,7 +221,7 @@ table.studentTable tr td button i.material-icons {
 }
 
 .mat-calendar-body-today:not(.mat-calendar-body-selected) {
-    border-color: #45AB34 !important;
+    border-color: #34b233 !important;
 }
 
 .mat-calendar-body-selected {

@@ -2,6 +2,7 @@ import {HeaderComponent } from './header/header.component';
 import {CourseListComponent } from './courseList/courseList.component';
 import {PagingComponent} from './paging/paging.component';
 import {CourseNamePipe} from './pipes/courseName.pipe';
+import {StudentStatePipe} from './pipes/studentState.pipe';
 
 import {APP_ROUTES} from './app.routes';
 import {RouterModule} from '@angular/router';
@@ -35,6 +36,7 @@ import { CovalentExpansionPanelModule } from '@covalent/core/expansion-panel';
 import { CovalentDialogsModule } from '@covalent/core/dialogs';
 
 import {MatButtonModule, MatNativeDateModule} from '@angular/material';
+import {MatTabsModule} from '@angular/material/tabs';
 import {MatMenuModule} from '@angular/material/menu'
 import {MatListModule} from '@angular/material/list';
 import {MatIconModule} from '@angular/material/icon';
@@ -56,7 +58,8 @@ export function get_login(appLoadService: AppLoadService) {
     HeaderComponent,
     CourseListComponent,
     PagingComponent,
-    CourseNamePipe
+    CourseNamePipe,
+    StudentStatePipe
   ],
   imports: [
     RouterModule.forRoot(APP_ROUTES),
@@ -76,6 +79,7 @@ export function get_login(appLoadService: AppLoadService) {
     MatDatepickerModule,
     MatNativeDateModule,
     MatAutocompleteModule,
+    MatTabsModule,
 
     CovalentLayoutModule,
     CovalentStepsModule,
@@ -94,7 +98,7 @@ export function get_login(appLoadService: AppLoadService) {
   providers: [
     CourseService,
     RoomService,
-    StudentService, 
+    StudentService,
     AppLoadService,
     {
       provide: APP_INITIALIZER,

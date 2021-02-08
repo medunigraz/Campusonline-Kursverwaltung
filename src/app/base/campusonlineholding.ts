@@ -7,3 +7,21 @@ export interface CampusOnlineHoldings {
   room: number;
   entries: Array<any>;
 }
+
+export interface CampusonlineholdingStudent {
+  manual_entries: Array<any>;
+  entries: Array<any>;
+  countStudentInLV: number;
+  countStundentLeaveLV: number;
+  countStudentDiscardLV: number;
+  countManualStudentInLV: number;
+  countManualStundentLeaveLV: number;
+  countManualStudentDiscardLV: number;
+}
+
+export interface RunningCourse {
+  campusonlineholding: CampusOnlineHoldings;
+  campusonlineholdingData: Array<any>;
+  campusonlineholdingStudent: CampusonlineholdingStudent;
+  campusonlineholdingStudentSearch: Array<any>;
+}

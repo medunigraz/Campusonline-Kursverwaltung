@@ -14,8 +14,8 @@ import {StudentService } from '../services/student.service';
 import { ITdDataTableColumn } from '@covalent/core/data-table';
 import { TdLoadingService } from '@covalent/core/loading';
 
-import {CampusOnlineHoldings} from '../base/campusonlineholding';
-import {Room} from '../base/room';
+import {CampusOnlineHoldings, CampusonlineholdingStudent, RunningCourse} from '../base/campusonlineholding';
+import {Autocomplete} from '../base/autocomplete';
 import {Student} from '../base/student';
 import {PagingComponent} from '../paging/paging.component';
 
@@ -28,59 +28,54 @@ export interface User {
   templateUrl: './courseList.component.html'
 })
 export class CourseListComponent implements OnInit {
-//Width wurde nicht übernommen
-/*
-  columns: ITdDataTableColumn[] = [
-    { name: 'Raum',  label: 'Raum', width: 150 },
-    { name: 'Kurs_Bezeichnung', label: 'Kurs Bezeichnung', width: { min: 150, max: 250 }},
-    //{ name: 'Bedienstete', label: 'Bedienstete', width: 250}, //Im Livebetrieb werden nur die Kurse eines Vortragenden angezeigt
-    { name: 'Start', label: 'Start', width: 100},
-    { name: 'Ende', label: 'Ende', width: 100},
-    { name: 'Aktion', label: 'Aktion', width: 100},
-  ];
-*/
-
-  columsStudents: ITdDataTableColumn[] = [
-      //{ name: 'ID',  label: 'ID', width: 150 },
-      { name: 'Titel',  label: 'Titel', width: 150 }
-      , { name: 'Name',  label: 'Name', width: 150 }
-      , { name: 'Eingeschrieben', label: 'Eingeschrieben', width: 250}
-      , { name: '', label: ''}
-  ];
-
-  arrStudents: Student[] = [];
-
   @ViewChild('pagingComp', {static: false}) pagingComponent: PagingComponent;
 
   overlayStarSyntax: boolean = false;
 
   private raumId : number = 0;
+  private vortragendenId: number = 0;
   private startGT : string = "";
   private startLT : string = "";
   private offset : number= 0;
 
   private coursesArray = [];
-  private studentArray = [];
 
-  options: Room[] = [];
+  options: Autocomplete[] = [];
+  optionsVortragende: Autocomplete[] = [];
 
-  startedCourseOnlineHolding : CampusOnlineHoldings;
-  startedCourse;
+  lastStartedCourseOnlineHolding : CampusOnlineHoldings;
+  arrStartedCourseOnlineHolding = [];
+  private mapStartedCampusOnlineHoldings  = new Map<number, RunningCourse>();
+  private emptyCampusonlineHoldingStudent : CampusonlineholdingStudent = {
+    manual_entries: [],
+    entries: [],
+    countStudentInLV: 0,
+    countStundentLeaveLV: 0,
+    countStudentDiscardLV: 0,
+    countManualStudentInLV: 0,
+    countManualStundentLeaveLV: 0,
+    countManualStudentDiscardLV: 0
+  }
+
   private runningCourse: boolean= false;
-  cancelCourse: boolean= false;
+  private cancelCourse: boolean= false;
   private finsihCourse: boolean= false;
 
   private timeOut;
   private allRoomSearch: boolean  = false;
 
+//Variablen für die Suche
   searchCourseName = new FormControl();
   searchRoomName = new FormControl();
+  searchVortragenden = new FormControl();
   searchDate = new FormControl();
-  minDate;
-  maxDate;
+  minDate: Date = new Date();
+  maxDate: Date = new Date();
 
+  searchStudentMatrikelNr = new FormControl();
 
-  filteredOptions: Observable<Room[]>;
+  filteredOptions: Observable<Autocomplete[]>;
+  filteredVortragendeOptions: Observable<Autocomplete[]>;
 
   constructor(
     formBuilder: FormBuilder,
@@ -100,89 +95,219 @@ export class CourseListComponent implements OnInit {
     this.activatedRoute.queryParams.subscribe((params: Params) => {
       this.raumId = params['raum'];
     });
-
   }
 
   ngOnInit() {
     this.toggleOverlayStarSyntax();
     this.checkCourseIsRunningInRoom();
+    this.searchDate.setValue(new Date());
 
     this.filteredOptions = this.searchRoomName.valueChanges
       .pipe(
-        startWith<string | Room>(''),
+        startWith<string | Autocomplete>(''),
         map(value => typeof value === 'string' ? value : value.presentation),
         map(presentation => presentation ? this._filter(presentation) : this.options.slice())
       );
 
-    this.getRoomsForFilter("");
+    this.filteredVortragendeOptions = this.searchVortragenden.valueChanges
+      .pipe(
+        startWith<string | Autocomplete>(''),
+        map(value => typeof value === 'string' ? value : value.presentation),
+        map(presentation => presentation ? this._filterVortragende(presentation) : this.optionsVortragende.slice())
+      );
+
+    this.minDate.setDate(this.minDate.getDate() - 6)
+    this.maxDate.setDate(this.maxDate.getDate() + 7)
+
     setInterval(() => { this.getStudentList(); }, 5000 );
   }
 
-
-  displayFn(room?: Room): string | undefined {
+  displayFn(room?: Autocomplete): string | undefined {
     return room ? room.presentation : undefined;
   }
 
-  private _filter(presentation: string): Room[] {
+  displayFnVortragende(vortragende?: Autocomplete): string | undefined {
+    return vortragende ? vortragende.presentation : undefined;
+  }
+
+  private _filter(presentation: string): Autocomplete[] {
     const filterValue = presentation.toLowerCase();
 
     //return this.options.filter(option => option.presentation.toLowerCase().indexOf(filterValue) === 0);
     return this.options.filter(option => option.presentation.toLowerCase().includes(filterValue));
   }
 
-  getStudentList() {
+  private _filterVortragende(presentation: string): Autocomplete[]  {
+    const filterValue = presentation.toLowerCase();
+
+    return this.optionsVortragende.filter(optionVortragende => optionVortragende.presentation.toLowerCase().includes(filterValue));
+  }
+
+//Kurs Namen Suche
+  onSearchCourseNameKeyUp() {
+      clearTimeout(this.timeOut);
+      this.timeOut = setTimeout(
+              () => {
+                this.offset = 0;
+                this.getCourses(this.raumId);
+          }, 700
+      );
+  }
+//Vortragenden Suche
+  onSearchVortragendenNameChange() {
+      let data;
+      clearTimeout(this.timeOut);
+      this.timeOut = setTimeout(
+              () => {
+                if(this.searchVortragenden.value.id) {
+                  this.vortragendenId = this.searchVortragenden.value.id
+                } else {
+                  this.vortragendenId = 0
+                }
+                this.getCourses(this.raumId);
+          }, 700
+      );
+  }
+//Autocomplete Vortragender
+  onSearchVortragendenNameKeyUp() {
     let data;
-    console.log(new Date);
-    if (this.startedCourseOnlineHolding) {
-      this.studentService.getStudentListFromCourseonlineholding(this.startedCourseOnlineHolding)
+    clearTimeout(this.timeOut);
+    this.timeOut = setTimeout(
+            () => {
+              if(this.searchVortragenden.value.length >= 4) {
+                this.optionsVortragende = []
+                this.getVortragendeForFilter(this.searchVortragenden.value, "")
+              }
+        }, 400
+    );
+  }
+//Filter Raum Bezeichnung geändert
+  onSearchRoomNameChange() {
+      let data;
+      clearTimeout(this.timeOut);
+      this.timeOut = setTimeout(
+              () => {
+                if(this.searchRoomName.value.id) {
+                  this.raumId = this.searchRoomName.value.id;
+                  this.offset = 0;
+                  this.getCourses(this.raumId);
+                } else {
+                  this.raumId = 0;
+                  this.getCourses(this.raumId);
+                }
+          }, 700
+      );
+  }
+//Filter Raum Bezeichnung geändert
+  onSearchRoomNameKeyUp() {
+      let data;
+      clearTimeout(this.timeOut);
+      this.timeOut = setTimeout(
+              () => {
+                this.options = []
+                if(this.searchRoomName.value.length >= 2) {
+                  this.getRoomsForFilter(this.searchRoomName.value, "")
+                } else if (this.searchRoomName.value.length == 0) {
+                  this.raumId = 0;
+                  this.getCourses(this.raumId)
+                }
+          }, 400
+      );
+  }
+//Studierenden Suche nach Matrikelnummer
+  onSearchStudentMatrikelNrKeyUp(campusonlineholdingID) {
+      let data;
+      clearTimeout(this.timeOut);
+      this.timeOut = setTimeout(
+              () => {
+                let tmpStartedCampusOnlineHolding = this.mapStartedCampusOnlineHoldings.get(campusonlineholdingID)
+                tmpStartedCampusOnlineHolding.campusonlineholdingStudentSearch = []
+                this.mapStartedCampusOnlineHoldings.set(campusonlineholdingID, tmpStartedCampusOnlineHolding)
+
+                if(this.searchStudentMatrikelNr.value.length >= 3) {
+                  this.getStudentsForFilter(campusonlineholdingID, this.searchStudentMatrikelNr.value, "");
+                }
+
+          }, 700
+      );
+  }
+//Datumssuche
+  onSearchDateChange() {
+    this.offset = 0;
+
+    if (this.searchDate.value) {
+      let tmpStart = this.searchDate.value;
+      tmpStart.setMinutes(tmpStart.getMinutes() - tmpStart.getTimezoneOffset());
+      tmpStart.setMinutes(1);
+      this.startGT = tmpStart.toISOString().split(".")[0];
+
+      tmpStart.setMinutes(59);
+      tmpStart.setHours(23);
+      this.startLT = tmpStart.toISOString().split(".")[0];
+    }
+
+    this.searchCourseInAllRooms();
+  }
+//Ergebnisse der Vortragenden für Filter
+  getVortragendeForFilter(searchString: string = "", next: string = "") {
+    let data;
+    this.courseService.getVortragende(searchString, next)
         .subscribe(
           (dataReturn) => {
-            data = dataReturn as any;
-            //console.log(dataReturn.entries);
-            this.studentArray = []
-            for(let student of data.entries) {
-              //console.log(student);
-              let tmpStudent: Student = {
-                id: student.id,
-                title: student.student.title,
-                firstName: student.student.first_name,
-                lastName: student.student.last_name,
-                state: student.state
-              }
-              //console.log(tmpStudent);
-              this.studentArray.push(tmpStudent);
+            data = dataReturn
+            data.results.map(val => this.optionsVortragende.push(val));
+
+            if(data.next) {
+              this.getVortragendeForFilter(searchString, data.next);
+            } else {
+              //console.log(this.options);
             }
-            console.log(this.studentArray);
           },
           (err) => {
             console.log(err);
           }
-      );
-    }
+        );
   }
-
-  startCourse(id: string, roomId: number) {
+//Ergebnisse der Räume für Filter
+  getRoomsForFilter(searchString: string = "", next: string = "") {
     let data;
-
-    this.courseService.createCampusOnlineHolding(id, roomId)
+    this.roomService.getRoom(searchString, next)
         .subscribe(
           (dataReturn) => {
-            data = dataReturn;
-            console.log(data);
-            this.startedCourseOnlineHolding = data;
+            data = dataReturn
+            //this.options = data.results;
+            data.results.map(val => this.options.push(val));
+            if(data.next) {
+              this.getRoomsForFilter(searchString, data.next);
+            } else {
+              //console.log(this.options);
+            }
+            if(this.options.length == 1) {
+              this.raumId = this.options[0].id
+              this.getCourses(this.raumId);
+            }
+          },
+          (err) => {
+            console.log(err);
+          }
+        );
+  }
+//Ergebnisse der Studierenden für Filter
+  getStudentsForFilter(campusonlineholdingID: number, searchString: string = "", next: string = "") {
+    let dataStudent;
+    this.studentService.getStudent(searchString, next)
+        .subscribe(
+          (dataReturn) => {
+            dataStudent = dataReturn
 
-            this.courseService.startCourse(this.startedCourseOnlineHolding)
-              .subscribe(
-                (dataReturn2) => {
-                  console.log(dataReturn2);
-                  this.cancelCourse = false;
-                },
-                (err2) => {
-                  console.log(err2);
-                }
-              );
-
-            this.getCourseById();
+            let tmpStartedCampusOnlineHolding = this.mapStartedCampusOnlineHoldings.get(campusonlineholdingID)
+            tmpStartedCampusOnlineHolding.campusonlineholdingStudentSearch = dataStudent.results
+            this.mapStartedCampusOnlineHoldings.set(campusonlineholdingID, tmpStartedCampusOnlineHolding)
+            if(dataStudent.next) {
+              //this.getStudentsForFilter(searchString, dataStudent.next);
+            } else {
+              //console.log(this.options);
+            }
           },
           (err) => {
             console.log(err);
@@ -190,42 +315,140 @@ export class CourseListComponent implements OnInit {
         );
   }
 
-  finishCourse() {
-      this.courseService.finishCourse(this.startedCourseOnlineHolding)
+//Suche in allen Räumen (Filterfunktionen werden aktifiert)
+  searchCourseInAllRooms() {
+    if(this.searchRoomName.value == "" || !this.searchRoomName.value) {
+      this.raumId = 0;
+    }
+    if(this.allRoomSearch == false || !this.searchDate.value || this.searchDate.value === null) {
+      let startGTDate = new Date();
+      let startLTDate = new Date();
+
+      if(!this.searchDate.value|| this.searchDate.value === null) {
+        startGTDate.setDate(startGTDate.getDate() - 6);
+        startLTDate.setDate(startLTDate.getDate() + 7);
+      }
+      startGTDate.setMinutes(0);
+      startGTDate.setHours(0);
+
+      startLTDate.setMinutes(59);
+      startLTDate.setHours(23);
+
+      this.startGT = startGTDate.toISOString().split(".")[0];
+      this.startLT = startLTDate.toISOString().split(".")[0];
+    }
+    this.getCourses(this.raumId);
+    this.allRoomSearch = true;
+    this.cancelCourse = false;
+  }
+
+// Kurs erstellen
+  startCourseCheck(startedCourse) {
+    if(this.arrStartedCourseOnlineHolding.length > 0) {
+      let arrCurrentOnlineHolding = [];
+      let startDateNewCourse;
+      let endDateNewCourse;
+      if(startedCourse.start) startDateNewCourse = new Date(startedCourse.start)
+      if(startedCourse.end) endDateNewCourse = new Date(startedCourse.end)
+      this.mapStartedCampusOnlineHoldings.forEach((startedCampusOnlineHolding, key) => {
+        let startDateCurrentCourse;
+        let endDateCurrentCourse;
+        if(startedCampusOnlineHolding.campusonlineholdingData.start) startDateCurrentCourse = new Date(startedCampusOnlineHolding.campusonlineholdingData.start)
+        if(startedCampusOnlineHolding.campusonlineholdingData.end) endDateCurrentCourse = new Date(startedCampusOnlineHolding.campusonlineholdingData.end)
+        if(endDateNewCourse.getTime() <= startDateCurrentCourse.getTime() || startDateNewCourse.getTime() >= endDateCurrentCourse.getTime()) {
+          arrCurrentOnlineHolding.push(startedCampusOnlineHolding)
+        }
+      });
+      if(arrCurrentOnlineHolding.length > 0) {
+        this._dialogService.openConfirm({
+          message: 'Es können nur Lehrveranstaltungen parallel abgehalten werden, die im selben Zeitraum eingetragen wurden! Wenn Sie diese Lehrveranstaltung starten, werden alle in diesem Raum gestartete Lehrveranstaltungen vorher beendet! \nWollen Sie wirklich abbrechen?',
+          disableClose: false, // defaults to false
+          viewContainerRef: this._viewContainerRef, //OPTIONAL
+          title: 'Lehrveranstaltung starten', //OPTIONAL, hides if not provided
+          cancelButton: 'Nein', //OPTIONAL, defaults to 'CANCEL'
+          acceptButton: 'Ja, abbrechen', //OPTIONAL, defaults to 'ACCEPT'
+          width: '500px', //OPTIONAL, defaults to 400px
+        }).afterClosed().subscribe((accept: boolean) => {
+          if (accept) {
+            arrCurrentOnlineHolding.forEach((currentOnlineHolding, key) => {
+              this.arrStartedCourseOnlineHolding.splice(this.arrStartedCourseOnlineHolding.indexOf(currentOnlineHolding.campusonlineholdingData.id))
+              this.mapStartedCampusOnlineHoldings.delete(currentOnlineHolding.campusonlineholding.id)
+            });
+            this.startCourse(startedCourse)
+          } else {
+            console.log("nein")
+          }
+        });
+      } else {
+        this.startCourse(startedCourse)
+      }
+    } else {
+      this.startCourse(startedCourse)
+    }
+  }
+  startCourse(startedCourse) {
+    let data;
+    this.courseService.createCampusOnlineHolding(startedCourse.id, startedCourse.room.id)
+        .subscribe(
+          (dataReturn) => {
+            this.finsihCourse = false;
+            data = dataReturn;
+            this.lastStartedCourseOnlineHolding = data;
+            this.courseService.startCourse(data)
+              .subscribe(
+                (dataReturn2) => {
+                  this.cancelCourse = false;
+                  this.getCourseDataById();
+                },
+                (err2) => {
+                  console.log(err2);
+                }
+              );
+          },
+          (err) => {
+            console.log(err);
+          }
+        );
+  }
+
+//Kurs beenden
+  finishCourse(courseOnlineHoldingId: number) {
+      this.courseService.finishCourse(this.mapStartedCampusOnlineHoldings.get(courseOnlineHoldingId).campusonlineholding)
           .subscribe(
             (dataReturn) => {
-              //console.log(dataReturn);
               this.finsihCourse = true;
-              this.startedCourseOnlineHolding = null;
-              this.coursesArray = [];
-
-              //this.getCourses(this.raumId);
+              this.lastStartedCourseOnlineHolding = null;
+              let campusHoldingDataId = this.mapStartedCampusOnlineHoldings.get(courseOnlineHoldingId).campusonlineholdingData
+              this.arrStartedCourseOnlineHolding.splice(this.arrStartedCourseOnlineHolding.indexOf(campusHoldingDataId), 1)
+              this.mapStartedCampusOnlineHoldings.delete(courseOnlineHoldingId)
+              this.getCourses(this.raumId);
+              this.runningCourse = false;
             },
             (err) => {
               console.log(err);
             }
           );
   }
-
-  cancelRunningCourse() {
+//Kurs abbrechen
+  cancelRunningCourse(courseOnlineHoldingId: number) {
     this._dialogService.openConfirm({
-      message: 'Wollen Sie diesen Kurs wirklich abbrechen? Der Kurs wird danach aus dem System entfernt! ',
+      message: 'Wenn Sie die Lehrveranstaltung abbrechen, werden keine Anwesenheitszeiten für diese Lehrveranstaltung im System gespeichert. \nWollen Sie wirklich abbrechen?',
       disableClose: false, // defaults to false
       viewContainerRef: this._viewContainerRef, //OPTIONAL
-      title: 'Kurs abbrechen', //OPTIONAL, hides if not provided
+      title: 'Lehrveranstaltung abbrechen', //OPTIONAL, hides if not provided
       cancelButton: 'Nein', //OPTIONAL, defaults to 'CANCEL'
-      acceptButton: 'Ja', //OPTIONAL, defaults to 'ACCEPT'
+      acceptButton: 'Ja, abbrechen', //OPTIONAL, defaults to 'ACCEPT'
       width: '500px', //OPTIONAL, defaults to 400px
     }).afterClosed().subscribe((accept: boolean) => {
       if (accept) {
-        //console.log("JA");
-        this.courseService.cancelCourse(this.startedCourseOnlineHolding)
+        this.courseService.cancelCourse(this.mapStartedCampusOnlineHoldings.get(courseOnlineHoldingId).campusonlineholding)
           .subscribe(
             (dataReturn) => {
               this.cancelCourse = true;
-              this.allRoomSearch = true;
-              this.startedCourseOnlineHolding = null;
-              this.coursesArray = [];
+              this.lastStartedCourseOnlineHolding = null;
+              let campusHoldingDataId = this.mapStartedCampusOnlineHoldings.get(courseOnlineHoldingId).campusonlineholdingData
+              this.arrStartedCourseOnlineHolding.splice(this.arrStartedCourseOnlineHolding.indexOf(campusHoldingDataId), 1)
+              this.mapStartedCampusOnlineHoldings.delete(courseOnlineHoldingId)
               this.getCourses(this.raumId);
               this.runningCourse = false;
             },
@@ -239,108 +462,7 @@ export class CourseListComponent implements OnInit {
     });
   }
 
-  onSearchCourseNameKeyUp() {
-      clearTimeout(this.timeOut);
-      this.timeOut = setTimeout(
-              () => {
-                this.offset = 0;
-                this.getCourses(this.raumId);
-          }, 700
-      );
-  }
-
-  getRoomsForFilter(next: string = "") {
-    let data;
-    this.roomService.getRoom(next)
-        .subscribe(
-          (dataReturn) => {
-            data = dataReturn
-
-            //this.options = data.results;
-
-            data.results.map(val => this.options.push(val));
-
-            if(data.next) {
-              this.getRoomsForFilter(data.next);
-            } else {
-              //console.log(this.options);
-            }
-          },
-          (err) => {
-            console.log(err);
-          }
-        );
-  }
-
-  onSearchRoomNameChange() {
-      let data;
-      clearTimeout(this.timeOut);
-      this.timeOut = setTimeout(
-              () => {
-                //console.log(this.searchRoomName.value);
-                if(this.searchRoomName.value.id) {
-                  this.roomService.getRoomById(this.searchRoomName.value.id)
-                    .subscribe(
-                      (dataReturn) => {
-                        data = dataReturn;
-                        this.raumId = data.properties.campusonline.id;
-                        this.offset = 0;
-                        this.getCourses(this.raumId);
-                      },
-                      (err) => {
-                        console.log(err);
-                      }
-                    );
-                } else {
-                  this.raumId = 0;
-                  this.getCourses(this.raumId);
-                }
-          }, 700
-      );
-  }
-
-  onSearchDateChange() {
-    this.offset = 0;
-
-    let tmpStart = this.searchDate.value;
-    tmpStart.setMinutes(tmpStart.getMinutes() - tmpStart.getTimezoneOffset());
-
-    tmpStart.setMinutes(1);
-    this.startGT = tmpStart.toISOString().split(".")[0];
-
-    tmpStart.setMinutes(59);
-    tmpStart.setHours(23);
-    this.startLT = tmpStart.toISOString().split(".")[0];
-
-    this.searchCourseInAllRooms();
-  }
-
-  searchCourseInAllRooms() {
-    if(this.searchRoomName.value == "") {
-      this.raumId = 0;
-    }
-
-    if(!this.searchDate.value) {
-      let startGTDate = new Date(); //Start 2018-01-17T09:30:00+01:00
-      startGTDate.setDate(startGTDate.getDate() - 6);
-      this.minDate = startGTDate;
-      startGTDate.setMinutes(0);
-      startGTDate.setHours(0);
-      let startLTDate = new Date();
-      startLTDate.setDate(startLTDate.getDate() + 7);
-      this.maxDate = startLTDate;
-      startLTDate.setMinutes(59);
-      startLTDate.setHours(23);
-
-      this.startGT = startGTDate.toISOString().split(".")[0];
-      this.startLT = startLTDate.toISOString().split(".")[0];
-    }
-
-    this.getCourses(this.raumId);
-    this.allRoomSearch = true;
-    this.cancelCourse = false;
-  }
-
+//Kurse für die Liste
   getCourses(raumNr: number) {
     this.toggleOverlayStarSyntax();
     let data;
@@ -348,13 +470,13 @@ export class CourseListComponent implements OnInit {
     if(this.searchCourseName.value === null)  {
       searchCourseName = "";
     }
-    this.courseService.getCourses(this.offset, raumNr, this.startGT, this.startLT, searchCourseName)
+    this.courseService.getCourses(this.offset, raumNr, this.startGT, this.startLT, searchCourseName, this.vortragendenId)
         .subscribe(
           (dataReturn) => {
             data = dataReturn;
             this.pagingComponent.setPagingDatas(data.count);
             this.coursesArray = data.results;
-//console.log(this.coursesArray );
+
             if(this.coursesArray.length > 0) {
               this.checkCourseIsRunning();
             } else {
@@ -368,6 +490,7 @@ export class CourseListComponent implements OnInit {
         );
   }
 
+//Läuft ein Kurs in der Liste
   checkCourseIsRunning() {
     let data;
     let counter: number = 0;
@@ -379,17 +502,22 @@ export class CourseListComponent implements OnInit {
             counter++;
             data = dataReturn;
             if(data.count > 0) {
-              this.startedCourse = course;
-              this.startedCourseOnlineHolding = data.results[0];
-              this.runningCourse = true;
+              this.lastStartedCourseOnlineHolding = data.results[0];
+              this.arrStartedCourseOnlineHolding.push(course.id)
+              this.mapStartedCampusOnlineHoldings.set(this.lastStartedCourseOnlineHolding.id, {
+                campusonlineholding: this.lastStartedCourseOnlineHolding,
+                campusonlineholdingData: course,
+                campusonlineholdingStudent: this.emptyCampusonlineHoldingStudent,
+                campusonlineholdingStudentSearch: []
+              })
 
+              this.runningCourse = true;
               this.getStudentList();
             }
-console.log(this.startedCourseOnlineHolding );
             if(counter == this.coursesArray.length) {
-              if(this.startedCourseOnlineHolding) {
-                this.getCourseById();
-              }
+//              if(this.lastStartedCourseOnlineHolding) {
+//                this.getCourseDataById();
+//              }
               this.toggleOverlayStarSyntax();
             }
           },
@@ -400,6 +528,7 @@ console.log(this.startedCourseOnlineHolding );
     }
   }
 
+//läuft ein Kurs im Raum
   checkCourseIsRunningInRoom() {
     let data;
     this.courseService.checkCourseIsRunningInRoom(this.raumId)
@@ -407,24 +536,23 @@ console.log(this.startedCourseOnlineHolding );
         (dataReturn) => {
           data = dataReturn;
           if(data.results.length > 0) {
-            this.startedCourseOnlineHolding = data.results[0];
+            this.lastStartedCourseOnlineHolding = data.results[0];
             this.getStudentList();
-            this.getCourseById();
+            this.getCourseDataById();
             this.runningCourse = true;
-          } else {
-            this.searchRoomName.setValue("");
-            this.searchCourseName.setValue("");
-
-            let startGTDate = new Date(); //Start 2018-01-17T09:30:00+01:00
-            startGTDate.setMinutes(startGTDate.getMinutes() - 15 - startGTDate.getTimezoneOffset());
-            let startLTDate = new Date();
-            startLTDate.setMinutes(startLTDate.getMinutes() + 15 - startLTDate.getTimezoneOffset());
-
-            this.startGT = startGTDate.toISOString().split(".")[0];
-            this.startLT = startLTDate.toISOString().split(".")[0];
-
-            this.getCourses(this.raumId);
           }
+          this.searchRoomName.setValue("");
+          this.searchCourseName.setValue("");
+
+          let startGTDate = new Date(); //Start 2018-01-17T09:30:00+01:00
+          startGTDate.setMinutes(startGTDate.getMinutes() - 900 - startGTDate.getTimezoneOffset());
+          let startLTDate = new Date();
+          startLTDate.setMinutes(startLTDate.getMinutes() + 900 - startLTDate.getTimezoneOffset());
+
+          this.startGT = startGTDate.toISOString().split(".")[0];
+          this.startLT = startLTDate.toISOString().split(".")[0];
+
+          this.getCourses(this.raumId);
         },
         (err) => {
           console.log(err);
@@ -432,17 +560,19 @@ console.log(this.startedCourseOnlineHolding );
       );
   }
 
-  getCourseById() {
+  getCourseDataById() {
     let data;
-    this.courseService.getCourseById(this.startedCourseOnlineHolding.course_group_term)
+    this.courseService.getCourseDataById(this.lastStartedCourseOnlineHolding.course_group_term)
       .subscribe(
         (dataReturn) => {
           data = dataReturn;
-          this.coursesArray = [];
-          this.coursesArray[0] = data;
-          this.startedCourse = data;
-          this.pagingComponent.setPagingDatas(data.count);
-          this.allRoomSearch = false;
+          this.arrStartedCourseOnlineHolding.push(data.id)
+          this.mapStartedCampusOnlineHoldings.set(this.lastStartedCourseOnlineHolding.id, {
+            campusonlineholding: this.lastStartedCourseOnlineHolding,
+            campusonlineholdingData: data,
+            campusonlineholdingStudent: this.emptyCampusonlineHoldingStudent,
+            campusonlineholdingStudentSearch: []
+          })
         },
         (err) => {
           console.log(err);
@@ -464,14 +594,100 @@ console.log(this.startedCourseOnlineHolding );
       this.overlayStarSyntax = !this.overlayStarSyntax;
     }
 
+//Studierendenlisten:
+//Studierendenliste pro Course aktualisieren
+  getStudentList() {
+    let data;
+    this.mapStartedCampusOnlineHoldings.forEach((startedCampusOnlineHolding, key) => {
+      this.studentService.getStudentListFromCourseonlineholding(startedCampusOnlineHolding.campusonlineholding)
+        .subscribe(
+          (dataReturn) => {
+            data = dataReturn as any;
+            let studentManualEntries = data.manual_entries
+            let tmpCampusonlineHoldingStudent : CampusonlineholdingStudent = {
+                manual_entries: [],
+                entries: [],
+                countStudentInLV: 0,
+                countStundentLeaveLV: 0,
+                countStudentDiscardLV: 0,
+                countManualStudentInLV: 0,
+                countManualStundentLeaveLV: 0,
+                countManualStudentDiscardLV: 0
+            }
+
+            for(let student of data.entries) {
+              let tmpStudent: Student = {
+                id: student.id,
+                title: student.student.title,
+                firstName: student.student.first_name,
+                lastName: student.student.last_name,
+                state: student.state
+              }
+              switch(student.state) {
+                case "assigned": {
+                  tmpCampusonlineHoldingStudent.countStudentInLV++
+                  break;
+                }
+                case "canceled": {
+                  tmpCampusonlineHoldingStudent.countStundentLeaveLV++
+                  break;
+                }
+                case "left": {
+                  tmpCampusonlineHoldingStudent.countStudentDiscardLV++
+                  break;
+                }
+              }
+
+              if(studentManualEntries.some(e => e ===  student.id)) {
+                switch(student.state) {
+                  case "assigned": {
+                    tmpCampusonlineHoldingStudent.countManualStudentInLV++
+                    break;
+                  }
+                  case "canceled": {
+                    tmpCampusonlineHoldingStudent.countManualStundentLeaveLV++
+                    break;
+                  }
+                  case "left": {
+                    tmpCampusonlineHoldingStudent.countManualStudentDiscardLV++
+                    break;
+                  }
+                }
+                tmpCampusonlineHoldingStudent.manual_entries.push(tmpStudent);
+              } else {
+                tmpCampusonlineHoldingStudent.entries.push(tmpStudent);
+              }
+            }
+
+            tmpCampusonlineHoldingStudent.entries.sort(function(a, b){
+                if(a.lastName < b.lastName) { return -1; }
+                if(a.lastName > b.lastName) { return 1; }
+                return 0;
+            })
+            tmpCampusonlineHoldingStudent.manual_entries.sort(function(a, b) {
+                if(a.lastName < b.lastName) { return -1; }
+                if(a.lastName > b.lastName) { return 1; }
+                return 0;
+            })
+            let tmpStartedCampusOnlineHolding = this.mapStartedCampusOnlineHoldings.get(key)
+            tmpStartedCampusOnlineHolding.campusonlineholdingStudent = tmpCampusonlineHoldingStudent
+            this.mapStartedCampusOnlineHoldings.set(key, tmpStartedCampusOnlineHolding)
+          },
+          (err) => {
+            cosnole.log(err)
+          }
+      );
+    });
+  }
+
   checkoutStudent(student: Student) {
       this._dialogService.openConfirm({
-        message: 'Wollen Sie ' + student.lastName + ' '+ student.firstName + ' wirklich aus den Kurs entfernen? ',
+        message: 'Wollen Sie diese Person "' + student.lastName + ' '+ student.firstName + '" tatsächlich aus dieser Lehrveranstaltung entfernen? ',
         disableClose: false, // defaults to false
         viewContainerRef: this._viewContainerRef, //OPTIONAL
-        title: 'StudentIn entfernen', //OPTIONAL, hides if not provided
+        title: 'Studierende*r entfernen', //OPTIONAL, hides if not provided
+        acceptButton: 'Ja, entfernen', //OPTIONAL, defaults to 'ACCEPT'
         cancelButton: 'Nein', //OPTIONAL, defaults to 'CANCEL'
-        acceptButton: 'Ja', //OPTIONAL, defaults to 'ACCEPT'
         width: '500px', //OPTIONAL, defaults to 400px
       }).afterClosed().subscribe((accept: boolean) => {
         if (accept) {
@@ -479,7 +695,6 @@ console.log(this.startedCourseOnlineHolding );
           this.studentService.checkoutStudentFromCourseOnlineEntrie(student.id)
             .subscribe(
               (dataReturn) => {
-                console.log("erfolgreich");
                 this.getStudentList();
               },
               (err) => {
@@ -491,6 +706,92 @@ console.log(this.startedCourseOnlineHolding );
         }
       //console.log(id);
     });
+  }
 
+  checkoutStudentManual(student: Student) {
+      this._dialogService.openConfirm({
+        message: 'Wollen Sie diese Person "' + student.lastName + ' '+ student.firstName + '" tatsächlich aus dieser Lehrveranstaltung entfernen? ',
+        disableClose: false, // defaults to false
+        viewContainerRef: this._viewContainerRef, //OPTIONAL
+        title: 'Studierende*r entfernen', //OPTIONAL, hides if not provided
+        acceptButton: 'Ja, entfernen', //OPTIONAL, defaults to 'ACCEPT'
+        cancelButton: 'Nein', //OPTIONAL, defaults to 'CANCEL'
+        width: '500px', //OPTIONAL, defaults to 400px
+      }).afterClosed().subscribe((accept: boolean) => {
+        if (accept) {
+          //console.log("JA");
+          this.studentService.checkoutManualStudentFromCourseOnlineEntrie(student.id)
+            .subscribe(
+              (dataReturn) => {
+                this.getStudentList();
+              },
+              (err) => {
+                console.log(err);
+              }
+            );
+        } else {
+          console.log("NEIN");
+        }
+      //console.log(id);
+    });
+  }
+
+  leaveStudentManual(student: Student) {
+      this._dialogService.openConfirm({
+        message: 'Hat diese Person "' + student.lastName + ' '+ student.firstName + '" tatsächlich die Lehrveranstaltung verlassen? ',
+        disableClose: false, // defaults to false
+        viewContainerRef: this._viewContainerRef, //OPTIONAL
+        title: 'Studierende*r hat LV verlassen', //OPTIONAL, hides if not provided
+        acceptButton: 'Ja', //OPTIONAL, defaults to 'ACCEPT'
+        cancelButton: 'Nein', //OPTIONAL, defaults to 'CANCEL'
+        width: '500px', //OPTIONAL, defaults to 400px
+      }).afterClosed().subscribe((accept: boolean) => {
+        if (accept) {
+          //console.log("JA");
+          this.studentService.leaveManualStudentFromCourseOnlineEntrie(student.id)
+            .subscribe(
+              (dataReturn) => {
+                this.getStudentList();
+              },
+              (err) => {
+                console.log(err);
+              }
+            );
+        } else {
+          console.log("NEIN");
+        }
+      //console.log(id);
+    });
+  }
+
+  checkinStudent(student, courseOnlineHoldingId: number) {
+      this._dialogService.openConfirm({
+        message: 'Wollen Sie diese Person "' + student.presentation + '" zur Lehrveranstaltung hinzufügen? ',
+        disableClose: false, // defaults to false
+        viewContainerRef: this._viewContainerRef, //OPTIONAL
+        title: 'Studierende*r hinzufügen', //OPTIONAL, hides if not provided
+        acceptButton: 'Ja', //OPTIONAL, defaults to 'ACCEPT'
+        cancelButton: 'Nein', //OPTIONAL, defaults to 'CANCEL'
+        width: '500px', //OPTIONAL, defaults to 400px
+      }).afterClosed().subscribe((accept: boolean) => {
+        if (accept) {
+          this.studentService.manualCheckinStudent(student.id, this.mapStartedCampusOnlineHoldings.get(courseOnlineHoldingId).campusonlineholding)
+            .subscribe(
+              (dataReturn) => {
+                let tmpStartedCampusOnlineHolding = this.mapStartedCampusOnlineHoldings.get(courseOnlineHoldingId)
+                tmpStartedCampusOnlineHolding.campusonlineholdingStudentSearch = []
+                this.mapStartedCampusOnlineHoldings.set(courseOnlineHoldingId, tmpStartedCampusOnlineHolding)
+                this.searchStudentMatrikelNr.setValue("");
+                this.getStudentList();
+              },
+              (err) => {
+                console.log(err);
+              }
+            );
+        } else {
+          console.log("NEIN");
+        }
+      //console.log(id);
+    });
   }
 }

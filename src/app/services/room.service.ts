@@ -20,18 +20,20 @@ export class RoomService {
         };
   }
 
-  getRoom(next: string = "") {
+  getRoom(searchString: string = "", next: string = "") {
     let url;
     if(next == "") {
-      url = this.apiURL + "api/autocomplete/?m=geo.Room";
+      //url = this.apiURL + "api/autocomplete/?m=geo.Room";
+      url = this.apiURL + "api/autocomplete/?m=campusonline.Room&q=" + searchString;
     } else {
       url = next;
-    }  
+    }
     return this.http.get(url, this.headers);
   }
 
   getRoomById(id: number) {
-    let url = this.apiURL + "geo/rooms/" + id;
+    //let url = this.apiURL + "geo/rooms/" + id;
+    let url = this.apiURL + "campusonline/room/" + id;
 
     return this.http.get(url, this.headers);
   }

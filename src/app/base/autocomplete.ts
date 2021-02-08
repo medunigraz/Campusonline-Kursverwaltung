@@ -1,4 +1,4 @@
-export interface Room {
+export interface Autocomplete {
   id: number;
   ctype: string;
   level_id: number;

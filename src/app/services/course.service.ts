@@ -22,7 +22,7 @@ export class CourseService {
 
   }
 
-  getCourses(offset: number, roomNr: number, startGT: string, startLT: string, courseName: String): Observable<Object> {
+  getCourses(offset: number, roomNr: number, startGT: string, startLT: string, courseName: String, vortragendeId: number): Observable<Object> {
 
     let paramsUrl = "?offset=" + offset + "&start__gte=" + startGT + "&start__lte=" + startLT;
     if(roomNr != 0) {
@@ -32,21 +32,34 @@ export class CourseService {
     if(courseName != "") {
       paramsUrl += "&title__icontains=" + courseName;
     }
+    if(vortragendeId != 0) {
+      paramsUrl += "&person=" + vortragendeId;
+    }
 
     let url = this.apiURL + "campusonline/course-group-term/" + paramsUrl;
 
     return this.http.get(url, this.headers);
   }
 
-  getCourseById(courseId: string){
+  getCourseDataById(courseId: string){
       let url = this.apiURL + "campusonline/course-group-term/" + courseId + "/";
 
       return this.http.get(url, this.headers);
   }
 
+  getVortragende(searchString: string = "", next: string = "") {
+    let url;
+    if(next == "") {
+      url = this.apiURL + "api/autocomplete/?m=campusonline.Person&q=" + searchString;
+    } else {
+      url = next;
+    }
+    return this.http.get(url, this.headers);
+  }
+
   createCampusOnlineHolding(courseId: string, roomId: number) {
     let url = this.apiURL + "attendance/campusonlineholding/";
-    var parameter = JSON.stringify({"course_group_term": courseId, "room": roomId, "entries": [], "state": "running"});
+    var parameter = JSON.stringify({"course_group_term": courseId, "room": roomId, "entries": [], "manual_entries": [], "state": "running"});
 
     return this.http.post(url, parameter, this.headers);
   }

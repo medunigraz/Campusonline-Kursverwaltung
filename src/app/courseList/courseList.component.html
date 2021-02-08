@@ -1,153 +1,318 @@
 <h1>
-  <mat-icon>school</mat-icon>  Campusonline Kursverwaltung
+  <mat-icon>school</mat-icon>  Campusonline Lehrveranstaltungsverwaltung
 </h1>
-<div *ngIf="cancelCourse == true">
-  <td-message label="Warnung!" sublabel="Der von Ihnen gestartete Kurs wurde abgebrochen!" color="warn" icon="info"></td-message><br />
+
+<div *ngIf="runningCourse" id="runningCourse">
+  <td-message label="Warnung!" sublabel="Es wurde folgende Lehrveranstaltung gefunden, die in diesem Raum gestartet wurde, ohne diesen vor dem Schließen des Browsers zu beenden!" color="warn" icon="info"></td-message>
 </div>
-
+<div *ngIf="cancelCourse == true">
+  <td-message label="Warnung!" sublabel="Die von Ihnen gestartete Lehrveranstaltung wurde abgebrochen!" color="warn" icon="info"></td-message><br />
+</div>
+<div *ngIf="finsihCourse == true">
+    <td-message label="Information!" sublabel="Die von Ihnen gestartete Lehrveranstaltung wurde erfolgreich beendet!" color="accent" icon="info"></td-message>
+</div>
 <div *tdLoading="'overlayStarSyntax'; mode:'indeterminate'; type:'circle'; strategy:'overlay'; color:'accent'">
-  <div class="filter" *ngIf="!startedCourseOnlineHolding ">
-    <form class="content" (ngSubmit)="searchCourseInAllRooms()" #SearchForm="ngForm" *ngIf="allRoomSearch == true ">
-      <mat-grid-list cols="3" rowHeight="65">
-        <mat-grid-tile width="200">
-          <mat-form-field>
-              <input
-                matInput
-                [formControl]="searchRoomName"
-                placeholder="Raum Bezeichnung"
-                (change)="onSearchRoomNameChange()"
-                [matAutocomplete]="auto"
-                #mySearchCourseName
-                width="250"
-              >
-              <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn">
-                <mat-option *ngFor="let option of filteredOptions | async" [value]="option">
-                  {{option.presentation}}
-                </mat-option>
-              </mat-autocomplete>
-          </mat-form-field>
-        </mat-grid-tile>
-        <mat-grid-tile>
-          <mat-form-field>
-              <input
-                matInput
-                [formControl]="searchCourseName"
-                placeholder="Kurs Bezeichnung"
-                (keyup)="onSearchCourseNameKeyUp()"
-                #mySearchCourseName
-              >
-          </mat-form-field>
-        </mat-grid-tile>
-        <mat-grid-tile>
+  <mat-tab-group>
+    <mat-tab label="Neue LV suchen">
+      <div class="filter">
+        <form class="content" (ngSubmit)="searchCourseInAllRooms()" #SearchForm="ngForm" *ngIf="allRoomSearch == true ">
+          <mat-grid-list cols="4" rowHeight="65">
+            <mat-grid-tile width="200">
+              <mat-form-field>
+                  <input
+                    matInput
+                    [formControl]="searchRoomName"
+                    placeholder="Raum Bezeichnung"
+                    (change)="onSearchRoomNameChange()"
+                    (keyup)="onSearchRoomNameKeyUp()"
+                    [matAutocomplete]="auto"
+                    #mySearchCourseName
+                    width="250"
+                  >
+                  <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn">
+                    <mat-option *ngFor="let option of filteredOptions | async" [value]="option">
+                      {{option.presentation}}
+                    </mat-option>
+                  </mat-autocomplete>
+              </mat-form-field>
+            </mat-grid-tile>
+            <mat-grid-tile>
+              <mat-form-field>
+                  <input
+                    matInput
+                    [formControl]="searchCourseName"
+                    placeholder=" Lehrveranstaltungsbezeichnung"
+                    (keyup)="onSearchCourseNameKeyUp()"
+                    #mySearchCourseName
+                  >
+              </mat-form-field>
+            </mat-grid-tile>
+            <mat-grid-tile>
+              <mat-form-field>
+                  <input
+                    matInput
+                    [formControl]="searchVortragenden"
+                    placeholder="Vortragende*r"
+                    (change)="onSearchVortragendenNameChange()"
+                    (keyup)="onSearchVortragendenNameKeyUp()"
+                    [matAutocomplete]="auto2"
+                    #mySearchCourseName
+                  >
+                  <mat-autocomplete #auto2="matAutocomplete" [displayWith]="displayFnVortragende">
+                    <mat-option *ngFor="let optionVortragende of filteredVortragendeOptions | async" [value]="optionVortragende">
+                      {{optionVortragende.presentation}}
+                    </mat-option>
+                  </mat-autocomplete>
+              </mat-form-field>
+            </mat-grid-tile>
+            <mat-grid-tile>
+              <mat-form-field>
+                <input
+                  matInput
+                  [min]="minDate"
+                  [max]="maxDate"
+                  [formControl]="searchDate"
+                  placeholder="Datum"
+                  (dateChange)="onSearchDateChange()"
+                  (change)="onSearchDateChange()"
+                  #mySearchDate
+                  [matDatepicker]="date"
+                  >
+                <mat-datepicker-toggle matSuffix [for]="date"></mat-datepicker-toggle>
+                <mat-datepicker #date></mat-datepicker>
+              </mat-form-field>
 
-          <mat-form-field>
-            <input
-              matInput
-              [min]="minDate"
-              [max]="maxDate"
-              [formControl]="searchDate"
-              placeholder="Datum"
-              (dateChange)="onSearchDateChange()"
-              #mySearchDate
-              [matDatepicker]="date"
-              >
-            <mat-datepicker-toggle matSuffix [for]="date"></mat-datepicker-toggle>
-            <mat-datepicker #date></mat-datepicker>
-          </mat-form-field>
-
-        </mat-grid-tile>
-    </mat-grid-list>
-    </form>
-  </div>
-  <div *ngIf="runningCourse" id="runningCourse">
-    <td-message label="Warnung!" sublabel="Es wurde folgender Kurs gefunden, der in diesem Raum gestartet wurde, ohne diesen vor dem Schließen des Browsers zu beenden!" color="warn" icon="info"></td-message>
-  </div>
-  <td-expansion-panel-group [multi]="false" #panelGroup>
-  <table td-data-table width="90%" class="mat-table">
-    <thead *ngIf="coursesArray.length > 0 && !startedCourseOnlineHolding">
-      <tr td-data-table-column-row id="trHead">
-        <!--
-        <th td-data-table-column *ngFor="let column of columns">
-          {{column.label}}
-        </th>
-        -->
-        <th width="20%">Raum</th>
-        <th width="40%">Kurs</th>
-        <th width="20%">Start - Ende</th>
-        <th width="10%">Aktion</th>
-      </tr>
-    </thead>
-    <tbody *ngIf="coursesArray.length > 0">
-        <tr td-data-table-row *ngFor="let course of coursesArray" id="Kurs_{{course.id}}" class="CourseInfo">
-          <td>{{course.room.title}} <br><i>({{course.room.name_full}})</i></td>
-          <td-expansion-panel label="{{course.title | couresName: 75}}">
-            <div class="moreInformation">
-              <table>
-                <tr><td colspan="2"><h3>{{course.title}}</h3></td></tr>
-                <tr><td><b>Kursgruppe</b>:</td><td>{{course.coursegroup.course.name}}</td></tr>
-                <tr><td><b>Typ</b>:</td><td>{{course.coursegroup.course.category}}</td></tr>
-                <tr><td><b>Semester, Jahr</b>:</td><td>{{course.coursegroup.course.semester}}, {{course.coursegroup.course.year}}</td></tr>
-                <tr><td><b>VortragendeR</b>:</td><td>{{course.person.title}} {{course.person.first_name}} {{course.person.last_name}}</td></tr>
-              </table>
-            </div>
-          </td-expansion-panel>
-          <td>{{course.start | date:'dd.MM.yyy HH:mm' }} - {{course.end | date:'dd.MM.yyy HH:mm' }}</td>
-          <td class="action">
-            <button (click)="startCourse(course.id, course.room.id)"  mat-button color="primary" *ngIf="!startedCourseOnlineHolding"><i class="material-icons startCourse">play_arrow</i>Kurs starten</button>
-            <button (click)="finishCourse()"  mat-button color="primary" *ngIf="startedCourseOnlineHolding"><i class="material-icons stopCourse">stop</i>Kurs beenden</button> &nbsp;
-            <button (click)="cancelRunningCourse()"  mat-button color="warn" *ngIf="startedCourseOnlineHolding"><i class="material-icons cancleCourse">cancel</i>Kurs abbrechen</button>
-          </td>
-        </tr>
-        <tr class="StudentColumn">
+            </mat-grid-tile>
+        </mat-grid-list>
+        </form>
+      </div>
+      <table td-data-table width="100%" class="mat-table">
+        <thead>
+          <tr td-data-table-column-row id="trHead">
+            <th width="20%">Raum</th>
+            <th width="30%">Lehrveranstaltung</th>
+            <th width="20%">Vortragende*r</th>
+            <th width="10%">Datum</th>
+            <th width="15%">Start - Ende</th>
+            <th width="10%">Aktion</th>
+          </tr>
+        </thead>
+        <tbody *ngIf="coursesArray.length > 0">
+            <tr td-data-table-row *ngFor="let course of coursesArray" id="Kurs_{{course.id}}" class="CourseInfo">
+              <td>{{course.room.title}} <br><i>({{course.room.name_full}})</i></td>
+              <td-expansion-panel label="{{course.title | couresName: 75}}">
+                <div class="moreInformation">
+                  <table>
+                    <tr><td colspan="2"><h3>{{course.title}}</h3></td></tr>
+                    <tr><td><b>LV Gruppe</b>:</td><td>{{course.coursegroup.name}}</td></tr>
+                    <tr><td><b>Typ</b>:</td><td>{{course.coursegroup.course.category}}</td></tr>
+                    <tr><td><b>Semester, Jahr</b>:</td><td>{{course.coursegroup.course.semester}}, {{course.coursegroup.course.year}}</td></tr>
+                    <tr><td><b>VortragendeR</b>:</td><td>{{course.person.title}} {{course.person.first_name}} {{course.person.last_name}}</td></tr>
+                    <tr style="display:none;"><td>{{course.room.id}}</td></tr>
+                  </table>
+                </div>
+              </td-expansion-panel>
+              <td>{{course.person.title}} {{course.person.first_name}} {{course.person.last_name}}</td>
+              <td>{{course.end | date:'dd.MM.yyy' }}</td>
+              <td>{{course.start | date:'HH:mm' }} - {{course.end | date:'HH:mm' }}</td>
+              <td class="action">
+                <button (click)="startCourseCheck(course)"  *ngIf="!arrStartedCourseOnlineHolding.includes(course.id)" mat-button color="primary"><i class="material-icons startCourse">play_arrow</i>LV abhalten</button>
+              </td>
+            </tr>
+        </tbody>
+        <tfoot>
           <td colspan="5">
-            <div *ngIf="startedCourseOnlineHolding" class="StudentList">
-              <h3><i class="material-icons">supervisor_account</i>  StudentInnen </h3>
-              <table td-data-table *ngIf="coursesArray.length > 0 && studentArray.length > 0" class="studentTable mat-table">
-                <thead>
-                  <tr td-data-table-column-row>
-                    <th td-data-table-column *ngFor="let column of columsStudents">
-                      {{column.label}}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr td-data-table-row *ngFor="let student of studentArray"  class="studentTable">
-                    <!-- <td>student.id</td> -->
-                    <td>{{student.title}}</td>
-                    <td><b>{{student.lastName}}</b> {{student.firstName}}</td>
-                    <td>{{student.state}}</td>
-                    <td>
-                      <button (click)="checkoutStudent(student)"  mat-button color="primary" *ngIf="startedCourseOnlineHolding && student.state == 'assigned'"><i class="material-icons">remove_circle_outline</i>StudentIn {{student.lastName}} aus Kurs entfernen</button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-              <div *ngIf="studentArray.length < 1">
-                <td-message label="Information!" sublabel="Es sind für Ihren Kurs noch keine StudentInnen eingeschrieben!" color="accent" icon="info"></td-message>
-              </div>
-            </div>
+            <paging #pagingComp (onPageChange)="onPageChange($event)">
+            </paging>
           </td>
-        </tr>
-    </tbody>
-    <tfoot>
-      <td colspan="5">
-        <paging #pagingComp (onPageChange)="onPageChange($event)">
-        </paging>
-      </td>
-    </tfoot>
-  </table>
+        </tfoot>
+      </table>
+      <div *ngIf="coursesArray.length < 1 && allRoomSearch == true">
+        <td-message label="Information!" sublabel="Es wurde für Ihre Suchoptionen keine Lehrveranstaltung gefunden!" color="accent" icon="info"></td-message>
+      </div>
+      <div *ngIf="allRoomSearch == false">
+        <td-message
+           *ngIf="coursesArray.length < 1"
+           label="Information!" sublabel="Es wurde für diese Raum derzeit keine Lehrveranstaltung gefunden, die in den nächsten 15 Minuten anfangen wird! Über die Suchfunktion können Sie weitere Lehrveranstaltung aufrufen (Liste kann durch Filter eingeschränkt werden)." color="accent" icon="info"></td-message>
+         <td-message
+              *ngIf="coursesArray.length > 1"
+              label="Information!" sublabel="Ihre Lehrveranstaltung wird nicht angezeigt? Über die Suchfunktion können Sie die gewünschte Lehrveranstaltung aufrufen (Liste kann durch Filter eingeschränkt werden)." color="accent" icon="info"></td-message>
+        <br>
+        <button (click)="searchCourseInAllRooms()"  mat-button color="primary" *ngIf="allRoomSearch == false"><mat-icon>search</mat-icon>Lehrveranstaltungssuche</button>
+      </div>
+    </mat-tab>
+    <mat-tab label="Derzeit abgehaltene LV" *ngIf="arrStartedCourseOnlineHolding.length > 0">
+      <br>
+      <table width="100%">
+        <thead>
+          <tr>
+            <td colspan="6">
+              <td-message label="Info: Lehrveranstaltung (LV) abbrechen" sublabel="Wenn Sie die Lehrveranstaltung (LV) abbrechen, werden KEINE Anwesenheitszeiten für die abgehaltene Lehrveranstaltung im System gespeichert!" color="accent" icon="info"></td-message>
+            </td>
+          </tr>
+          <tr td-data-table-column-row id="trHead">
+            <th width="20%">Raum</th>
+            <th width="30%">Lehrveranstaltung</th>
+            <th width="20%">Vortragende*r</th>
+            <th width="10%">Datum</th>
+            <th width="15%">Start - Ende</th>
+            <th width="10%">Aktion</th>
+          </tr>
+        </thead>
+        <tbody>
+            <ng-container *ngFor="let item of mapStartedCampusOnlineHoldings | keyvalue">
+              <!-- <tr *ngFor="let item of mapStartedCampusOnlineHoldings | keyvalue">-->
+              <tr>
+                <td>{{item.value.campusonlineholdingData.room.title}}<br><i>({{item.value.campusonlineholdingData.room.name_full}})</i></td>
+                <td>
+                  {{item.value.campusonlineholdingData.title}}<br>
+                  <b>LV Gruppe:</b> {{item.value.campusonlineholdingData.coursegroup.name}}<br>
+                  <b>Typ:</b> {{item.value.campusonlineholdingData.coursegroup.course.category}}<br>
+                  <b>Semester:</b> {{item.value.campusonlineholdingData.coursegroup.course.semester}} {{item.value.campusonlineholdingData.coursegroup.course.year}}
+                </td>
+
+                <td>{{item.value.campusonlineholdingData.person.title}} {{item.value.campusonlineholdingData.person.first_name}} {{item.value.campusonlineholdingData.person.last_name}}</td>
+                <td>{{item.value.campusonlineholdingData.end | date:'dd.MM.yyy' }}</td>
+                <td>{{item.value.campusonlineholdingData.start | date:'HH:mm' }} - {{item.value.campusonlineholdingData.end | date:'HH:mm' }}</td>
+                <td class="action">
+                  <button (click)="finishCourse(item.value.campusonlineholding.id)"  mat-button color="primary" class="KursAction"><i class="material-icons stopCourse">stop</i>LV beenden</button> <br><br>
+                  <button (click)="cancelRunningCourse(item.value.campusonlineholding.id)"  mat-button color="warn"  class="KursAction"><i class="material-icons cancleCourse">cancel</i>LV abbrechen</button>
+                </td>
+              </tr>
+              <tr style="border-bottom: 1px solid rgba(0, 0, 0, 0.12);">
+                <td colspan="3">
+                  <h3><i class="material-icons">supervisor_account</i>  Studierende </h3>
+                  <div td-data-table>
+                    <table>
+                      <tr>
+                        <td width="130px">
+                          <b>Anwesende:</b>
+                        </td>
+                        <td>
+                          {{item.value.campusonlineholdingStudent.countStudentInLV}}
+                        </td>
+                        <td>
+                           (<b>Manuell hinzugefügt: </b>{{item.value.campusonlineholdingStudent.countManualStudentInLV}})
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <b>LV verlassen:</b>
+                        </td>
+                        <td>
+                          {{item.value.campusonlineholdingStudent.countStudentDiscardLV}}
+                        </td>
+                        <td>
+                          (<b>Manuell hinzugefügt: </b>{{item.value.campusonlineholdingStudent.countManualStudentDiscardLV}})
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <b>Aus LV entfernt:</b>
+                        </td>
+                        <td>
+                          {{item.value.campusonlineholdingStudent.countStundentLeaveLV}}
+                        </td>
+                        <td>
+                          (<b>Manuell hinzugefügt: </b>{{item.value.campusonlineholdingStudent.countManualStundentLeaveLV}})
+                        </td>
+                      </tr>
+                    </table>
+                  </div>
+                  <mat-tab-group>
+                    <mat-tab label="Eingeloggt über Terminal">
+                      <div *ngIf="item.value.campusonlineholdingStudent.entries.length < 1">
+                        <td-message label="Information!" sublabel="Es sind für Ihre Lehrveranstaltung noch keine Studierenden eingeloggt!" color="accent" icon="info"></td-message>
+                      </div>
+                       <table td-data-table *ngIf="item.value.campusonlineholdingStudent.entries.length > 0" class="studentTable mat-table">
+                         <thead>
+                           <tr td-data-table-column-row>
+                             <th width="20%">Titel</th>
+                             <th width="40%">Name</th>
+                             <th width="20%">Status</th>
+                             <th width=""> </th>
+                           </tr>
+                         </thead>
+                         <tbody>
+                           <tr td-data-table-row *ngFor="let student of item.value.campusonlineholdingStudent.entries"  class="studentTable">
+                             <!-- <td>student.id</td> -->
+                             <td>{{student.title}}</td>
+                             <td><b>{{student.lastName}}</b> {{student.firstName}}</td>
+                             <td>{{student.state | StudentState}}</td>
+                             <td>
+                               <button (click)="checkoutStudent(student)"  mat-button color="warn" *ngIf="student.state == 'assigned'"><i class="material-icons">cancel</i> Aus LV entfernen</button>
+                             </td>
+                           </tr>
+                         </tbody>
+                       </table>
+                     </mat-tab>
+                     <mat-tab label="Manuell hinzugefügte Studierende">
+                        <form class="content" (ngSubmit)="searchCourseInAllRooms()" #SearchForm="ngForm">
+                          <mat-form-field>
+                              <input
+                                matInput
+                                [formControl]="searchStudentMatrikelNr"
+                                placeholder="Matrikelnummer Suche (min. 3 Zeichen eingeben)"
+                                (keyup)="onSearchStudentMatrikelNrKeyUp(item.value.campusonlineholding.id)"
+                                #mySearchStudentName
+                                width="400"
+                              >
+                          </mat-form-field>
+                        </form>
+                        <table td-data-table *ngIf="item.value.campusonlineholdingStudentSearch.length > 0" class="studentSearchTable mat-table">
+                          <thead>
+                            <tr td-data-table-column-row>
+                              <th width="60%">Name</th>
+                              <th width="40%"></th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr td-data-table-row *ngFor="let studentSearch of item.value.campusonlineholdingStudentSearch"  class="studentSearchTable">
+                              <!-- <td>student.id</td> -->
+                              <td>{{studentSearch.presentation}}</td>
+                              <td>
+                                <button (click)="checkinStudent(studentSearch, item.value.campusonlineholding.id)"  mat-button color="primary"><i class="material-icons">add_circle_outline</i> Hinzufügen</button>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                        <table td-data-table *ngIf="item.value.campusonlineholdingStudent.manual_entries.length > 0" class="studentTable mat-table" width="80%">
+                          <thead>
+                            <tr td-data-table-column-row>
+                              <th width="20%">Titel</th>
+                              <th width="40%">Name</th>
+                              <th width="20%">Status</th>
+                              <th width="10%"> </th>
+                              <th width="10%"> </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr td-data-table-row *ngFor="let studentManual of item.value.campusonlineholdingStudent.manual_entries"  class="studentTable">
+                              <td>{{studentManual.title}}</td>
+                              <td><b>{{studentManual.lastName}}</b> {{studentManual.firstName}}</td>
+                              <td>{{studentManual.state | StudentState}}</td>
+                              <td>
+                                <button (click)="leaveStudentManual(studentManual)"  mat-button color="primary" *ngIf="studentManual.state == 'assigned'"><i class="material-icons">remove_circle_outline</i> Hat LV verlassen</button>
+                              </td>
+                              <td>
+                                <button (click)="checkoutStudentManual(studentManual)"  mat-button color="warn" *ngIf="studentManual.state == 'assigned'"><i class="material-icons">cancel</i> Aus LV entfernen</button>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </mat-tab>
+                  </mat-tab-group>
+                  <br>
+                  <br>
+                </td>
+              </tr>
+            </ng-container>
+          </tbody>
+      </table>
+    </mat-tab>
+  </mat-tab-group>
+  <td-expansion-panel-group [multi]="false" #panelGroup>
+
   </td-expansion-panel-group>
-  <div *ngIf="coursesArray.length < 1 && allRoomSearch == false && cancelCourse == false && finsihCourse == false">
-    <td-message label="Information!" sublabel="Es wurde für diese Raum derzeit kein Kurs gefunden, der in den nächsten 15 Minuten anfangen wird!" color="accent" icon="info"></td-message>
-    <br>
-    <button (click)="searchCourseInAllRooms()"  mat-button color="primary" *ngIf="!startedCourseOnlineHolding"><mat-icon>search</mat-icon>Kurse in anderen Raum suchen (Zeitraum: +/- 7 Tage)</button>
-  </div>
-  <div *ngIf="coursesArray.length < 1 && allRoomSearch == true && cancelCourse == false && finsihCourse == false">
-    <td-message label="Information!" sublabel="Es wurde für Ihre Suchoptionen kein Kurs gefunden!" color="accent" icon="info"></td-message>
-  </div>
 
-
-  <div *ngIf="finsihCourse == true">
-    <td-message label="Information!" sublabel="Der von Ihnen gestartete Kurs wurde erfolgreich beendet!" color="accent" icon="info"></td-message>
-  </div>
 </div>
