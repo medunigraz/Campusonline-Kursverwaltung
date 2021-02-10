@@ -346,17 +346,19 @@ export class CourseListComponent implements OnInit {
   startCourseCheck(startedCourse) {
     if(this.arrStartedCourseOnlineHolding.length > 0) {
       let arrCurrentOnlineHolding = [];
-      let startDateNewCourse;
-      let endDateNewCourse;
+      let startDateNewCourse: Date = new Date();
+      let endDateNewCourse: Date = new Date();
+      let startDateCurrentCourse: Date = new Date();
+      let endDateCurrentCourse: Date = new Date();
       if(startedCourse.start) startDateNewCourse = new Date(startedCourse.start)
       if(startedCourse.end) endDateNewCourse = new Date(startedCourse.end)
       this.mapStartedCampusOnlineHoldings.forEach((startedCampusOnlineHolding, key) => {
-        let startDateCurrentCourse;
-        let endDateCurrentCourse;
-        if(startedCampusOnlineHolding.campusonlineholdingData.start) startDateCurrentCourse = new Date(startedCampusOnlineHolding.campusonlineholdingData.start)
-        if(startedCampusOnlineHolding.campusonlineholdingData.end) endDateCurrentCourse = new Date(startedCampusOnlineHolding.campusonlineholdingData.end)
-        if(endDateNewCourse.getTime() <= startDateCurrentCourse.getTime() || startDateNewCourse.getTime() >= endDateCurrentCourse.getTime()) {
-          arrCurrentOnlineHolding.push(startedCampusOnlineHolding)
+        if(startedCampusOnlineHolding.campusonlineholdingData) {
+          if(startedCampusOnlineHolding.campusonlineholdingData.start) startDateCurrentCourse = new Date(startedCampusOnlineHolding.campusonlineholdingData.start)
+          if(startedCampusOnlineHolding.campusonlineholdingData.end) endDateCurrentCourse = new Date(startedCampusOnlineHolding.campusonlineholdingData.end)
+          if(endDateNewCourse.getTime() <= startDateCurrentCourse.getTime() || startDateNewCourse.getTime() >= endDateCurrentCourse.getTime()) {
+            arrCurrentOnlineHolding.push(startedCampusOnlineHolding)
+          }
         }
       });
       if(arrCurrentOnlineHolding.length > 0) {
@@ -545,9 +547,9 @@ export class CourseListComponent implements OnInit {
           this.searchCourseName.setValue("");
 
           let startGTDate = new Date(); //Start 2018-01-17T09:30:00+01:00
-          startGTDate.setMinutes(startGTDate.getMinutes() - 900 - startGTDate.getTimezoneOffset());
+          startGTDate.setMinutes(startGTDate.getMinutes() - 45 - startGTDate.getTimezoneOffset());
           let startLTDate = new Date();
-          startLTDate.setMinutes(startLTDate.getMinutes() + 900 - startLTDate.getTimezoneOffset());
+          startLTDate.setMinutes(startLTDate.getMinutes() + 45 - startLTDate.getTimezoneOffset());
 
           this.startGT = startGTDate.toISOString().split(".")[0];
           this.startLT = startLTDate.toISOString().split(".")[0];
