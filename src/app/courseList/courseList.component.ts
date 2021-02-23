@@ -278,7 +278,7 @@ export class CourseListComponent implements OnInit {
             //this.options = data.results;
             data.results.map(val => this.options.push(val));
             if(data.next) {
-              this.getRoomsForFilter(searchString, data.next);
+              //this.getRoomsForFilter(searchString, data.next);
             } else {
               //console.log(this.options);
             }
@@ -547,9 +547,9 @@ export class CourseListComponent implements OnInit {
           this.searchCourseName.setValue("");
 
           let startGTDate = new Date(); //Start 2018-01-17T09:30:00+01:00
-          startGTDate.setMinutes(startGTDate.getMinutes() - 45 - startGTDate.getTimezoneOffset());
+          startGTDate.setMinutes(startGTDate.getMinutes() - 15 - startGTDate.getTimezoneOffset());
           let startLTDate = new Date();
-          startLTDate.setMinutes(startLTDate.getMinutes() + 45 - startLTDate.getTimezoneOffset());
+          startLTDate.setMinutes(startLTDate.getMinutes() + 15 - startLTDate.getTimezoneOffset());
 
           this.startGT = startGTDate.toISOString().split(".")[0];
           this.startLT = startLTDate.toISOString().split(".")[0];
@@ -604,8 +604,6 @@ export class CourseListComponent implements OnInit {
       this.studentService.getStudentListFromCourseonlineholding(startedCampusOnlineHolding.campusonlineholding)
         .subscribe(
           (dataReturn) => {
-            data = dataReturn as any;
-            let studentManualEntries = data.manual_entries
             let tmpCampusonlineHoldingStudent : CampusonlineholdingStudent = {
                 manual_entries: [],
                 entries: [],
@@ -616,7 +614,7 @@ export class CourseListComponent implements OnInit {
                 countManualStundentLeaveLV: 0,
                 countManualStudentDiscardLV: 0
             }
-
+            data = dataReturn as any;
             for(let student of data.entries) {
               let tmpStudent: Student = {
                 id: student.id,
@@ -639,44 +637,63 @@ export class CourseListComponent implements OnInit {
                   break;
                 }
               }
-
-              if(studentManualEntries.some(e => e ===  student.id)) {
-                switch(student.state) {
-                  case "assigned": {
-                    tmpCampusonlineHoldingStudent.countManualStudentInLV++
-                    break;
-                  }
-                  case "canceled": {
-                    tmpCampusonlineHoldingStudent.countManualStundentLeaveLV++
-                    break;
-                  }
-                  case "left": {
-                    tmpCampusonlineHoldingStudent.countManualStudentDiscardLV++
-                    break;
-                  }
-                }
-                tmpCampusonlineHoldingStudent.manual_entries.push(tmpStudent);
-              } else {
-                tmpCampusonlineHoldingStudent.entries.push(tmpStudent);
-              }
+              tmpCampusonlineHoldingStudent.entries.push(tmpStudent);
             }
 
-            tmpCampusonlineHoldingStudent.entries.sort(function(a, b){
-                if(a.lastName < b.lastName) { return -1; }
-                if(a.lastName > b.lastName) { return 1; }
-                return 0;
-            })
-            tmpCampusonlineHoldingStudent.manual_entries.sort(function(a, b) {
-                if(a.lastName < b.lastName) { return -1; }
-                if(a.lastName > b.lastName) { return 1; }
-                return 0;
-            })
-            let tmpStartedCampusOnlineHolding = this.mapStartedCampusOnlineHoldings.get(key)
-            tmpStartedCampusOnlineHolding.campusonlineholdingStudent = tmpCampusonlineHoldingStudent
-            this.mapStartedCampusOnlineHoldings.set(key, tmpStartedCampusOnlineHolding)
+            this.studentService.getManualStudentListFromCourseonlineholding(startedCampusOnlineHolding.campusonlineholding)
+              .subscribe(
+                (dataReturn) => {
+                  data = dataReturn as any;
+                  for(let student of data.manual_entries) {
+                    let tmpStudent: Student = {
+                      id: student.id,
+                      title: student.student.title,
+                      firstName: student.student.first_name,
+                      lastName: student.student.last_name,
+                      state: student.state
+                    }
+                    switch(student.state) {
+                      case "assigned": {
+                        tmpCampusonlineHoldingStudent.countStudentInLV++
+                        tmpCampusonlineHoldingStudent.countManualStudentInLV++
+                        break;
+                      }
+                      case "canceled": {
+                        tmpCampusonlineHoldingStudent.countStundentLeaveLV++
+                        tmpCampusonlineHoldingStudent.countManualStundentLeaveLV++
+                        break;
+                      }
+                      case "left": {
+                        tmpCampusonlineHoldingStudent.countStudentDiscardLV++
+                        tmpCampusonlineHoldingStudent.countManualStudentDiscardLV++
+                        break;
+                      }
+                    }
+                    tmpCampusonlineHoldingStudent.manual_entries.push(tmpStudent);
+                  }
+
+                  tmpCampusonlineHoldingStudent.entries.sort(function(a, b){
+                      if(a.lastName < b.lastName) { return -1; }
+                      if(a.lastName > b.lastName) { return 1; }
+                      return 0;
+                  })
+                  tmpCampusonlineHoldingStudent.manual_entries.sort(function(a, b) {
+                      if(a.lastName < b.lastName) { return -1; }
+                      if(a.lastName > b.lastName) { return 1; }
+                      return 0;
+                  })
+
+                  let tmpStartedCampusOnlineHolding = this.mapStartedCampusOnlineHoldings.get(key)
+                  tmpStartedCampusOnlineHolding.campusonlineholdingStudent = tmpCampusonlineHoldingStudent
+                  this.mapStartedCampusOnlineHoldings.set(key, tmpStartedCampusOnlineHolding)
+                },
+                (err) => {
+                  console.log(err)
+                }
+            );
           },
           (err) => {
-            cosnole.log(err)
+            console.log(err)
           }
       );
     });

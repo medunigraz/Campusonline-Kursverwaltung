@@ -26,6 +26,11 @@ export class StudentService {
     return this.http.get(url, this.headers);
   }
 
+  getManualStudentListFromCourseonlineholding(course: CampusOnlineHoldings) {
+    let url = this.apiURL + "attendance/campusonlineholding/"+course.id+"/?expand=manual_entries.student";
+    return this.http.get(url, this.headers);
+  }
+
   manualCheckinStudent(studentId: number, course: CampusOnlineHoldings) {
     let url = this.apiURL + "attendance/manualcampusonlineentry/";
     var parameter = JSON.stringify({"student": studentId, "holding": course.id, "room": course.room});
