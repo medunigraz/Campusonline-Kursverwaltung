@@ -11,7 +11,8 @@ export const environment = {
 export const auth: AuthConfig = {
 //  'clientId': 'zfPJ2FCJMWgZxm9tvpIHsy5J5W5G4LaZzMs5WZvu', //https://api.medunigraz.at:8088/
   'clientId': 'jv74QwVn5T3VislAPYY0N4TIDzvSeJtuNKENVXWP', //https://api-test.medunigraz.at
-  'redirectUri': 'http://localhost:4200/',
+  //'redirectUri': 'http://localhost:4200/',  
+  'redirectUri': 'https://eanwesenheit.medunigraz.at/',
   'loginUrl': baseURL + 'oauth2/authorize/',
   'postLogoutRedirectUri': '',
   'scope': 'media',
@@ -24,7 +25,8 @@ export const auth: AuthConfig = {
   'tokenEndpoint': baseURL + 'oauth2/token/',
   'responseType': 'token',
   'showDebugInformation': true,
-  'silentRefreshRedirectUri': 'http://localhost:4200/silent-refresh.html',
+  // 'silentRefreshRedirectUri': 'http://localhost:4200/silent-refresh.html',
+  'silentRefreshRedirectUri': 'https://eanwesenheit.medunigraz.at/silent-refresh.html',
   'silentRefreshMessagePrefix': '',
   'silentRefreshShowIFrame': false,
   'silentRefreshTimeout': 20000,
