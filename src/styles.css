@@ -216,6 +216,16 @@ table.studentTable tr th, table.studentTable tr td {
   vertical-align: middle;
 }
 
+table.studentTable tr.notInGroup td {
+  background-color: rgba(229, 57, 53, 0.15);
+}
+table.studentTable tr.notInGroup td {
+  color: #e53935;
+}
+table.studentTable tr.notInGroup:hover {
+  color: black;
+}
+
 table.studentTable tr td button i.material-icons {
   padding-bottom: 1px;
 }

@@ -1,5 +1,5 @@
 <h1>
-  <mat-icon>school</mat-icon>  Campusonline Lehrveranstaltungsverwaltung
+  <mat-icon>school</mat-icon>  CAMPUSonline Lehrveranstaltungsverwaltung
 </h1>
 
 <div *ngIf="runningCourse" id="runningCourse">
@@ -234,7 +234,7 @@
                            </tr>
                          </thead>
                          <tbody>
-                           <tr td-data-table-row *ngFor="let student of item.value.campusonlineholdingStudent.entries"  class="studentTable">
+                           <tr td-data-table-row *ngFor="let student of item.value.campusonlineholdingStudent.entries"  class="studentTable {{student.accredited}}">
                              <!-- <td>student.id</td> -->
                              <td>{{student.title}}</td>
                              <td><b>{{student.lastName}}</b> {{student.firstName}}</td>
@@ -252,7 +252,7 @@
                               <input
                                 matInput
                                 [formControl]="searchStudentMatrikelNr"
-                                placeholder="Matrikelnummer Suche (min. 3 Zeichen eingeben)"
+                                placeholder="Nachnamensuche (min. 3 Zeichen eingeben)"
                                 (keyup)="onSearchStudentMatrikelNrKeyUp(item.value.campusonlineholding.id)"
                                 #mySearchStudentName
                                 width="400"
@@ -269,7 +269,7 @@
                           <tbody>
                             <tr td-data-table-row *ngFor="let studentSearch of item.value.campusonlineholdingStudentSearch"  class="studentSearchTable">
                               <!-- <td>student.id</td> -->
-                              <td>{{studentSearch.presentation}}</td>
+                              <td>{{studentSearch.first_name}} {{studentSearch.last_name}}</td>
                               <td>
                                 <button (click)="checkinStudent(studentSearch, item.value.campusonlineholding.id)"  mat-button color="primary"><i class="material-icons">add_circle_outline</i> Hinzufügen</button>
                               </td>
@@ -287,7 +287,7 @@
                             </tr>
                           </thead>
                           <tbody>
-                            <tr td-data-table-row *ngFor="let studentManual of item.value.campusonlineholdingStudent.manual_entries"  class="studentTable">
+                            <tr td-data-table-row *ngFor="let studentManual of item.value.campusonlineholdingStudent.manual_entries"  class="studentTable {{studentManual.accredited}}">
                               <td>{{studentManual.title}}</td>
                               <td><b>{{studentManual.lastName}}</b> {{studentManual.firstName}}</td>
                               <td>{{studentManual.state | StudentState}}</td>

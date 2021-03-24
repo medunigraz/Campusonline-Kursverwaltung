@@ -57,9 +57,9 @@ export class CourseListComponent implements OnInit {
     countManualStudentDiscardLV: 0
   }
 
-  private runningCourse: boolean= false;
-  private cancelCourse: boolean= false;
-  private finsihCourse: boolean= false;
+  runningCourse: boolean= false;
+  cancelCourse: boolean= false;
+  finsihCourse: boolean= false;
 
   private timeOut;
   private allRoomSearch: boolean  = false;
@@ -119,7 +119,7 @@ export class CourseListComponent implements OnInit {
     this.minDate.setDate(this.minDate.getDate() - 6)
     this.maxDate.setDate(this.maxDate.getDate() + 7)
 
-    setInterval(() => { this.getStudentList(); }, 5000 );
+    //setInterval(() => { this.getStudentList(); }, 5000 );
   }
 
   displayFn(room?: Autocomplete): string | undefined {
@@ -223,9 +223,22 @@ export class CourseListComponent implements OnInit {
                 let tmpStartedCampusOnlineHolding = this.mapStartedCampusOnlineHoldings.get(campusonlineholdingID)
                 tmpStartedCampusOnlineHolding.campusonlineholdingStudentSearch = []
                 this.mapStartedCampusOnlineHoldings.set(campusonlineholdingID, tmpStartedCampusOnlineHolding)
-
-                if(this.searchStudentMatrikelNr.value.length >= 3) {
-                  this.getStudentsForFilter(campusonlineholdingID, this.searchStudentMatrikelNr.value, "");
+                //AccreditedStudent muss nur einmalig beim ersten Aufruf geholt werden, da es danach gespeichert wird
+                if(tmpStartedCampusOnlineHolding.campusonlineholdingAccreditedStudent.length === 0) {
+                  this.studentService.getAccreditedStudentListFromCourseonlineholding(tmpStartedCampusOnlineHolding.campusonlineholding)
+                    .subscribe(
+                      (dataReturn) => {
+                        data = dataReturn as any;
+                        tmpStartedCampusOnlineHolding.campusonlineholdingAccreditedStudent = data.accredited
+                        this.mapStartedCampusOnlineHoldings.set(campusonlineholdingID, tmpStartedCampusOnlineHolding)
+                        this.getStudentsForFilter(campusonlineholdingID, this.searchStudentMatrikelNr.value)
+                      },
+                      (err) => {
+                        console.log(err)
+                      }
+                  );
+                } else {
+                  this.getStudentsForFilter(campusonlineholdingID, this.searchStudentMatrikelNr.value)
                 }
 
           }, 700
@@ -293,26 +306,12 @@ export class CourseListComponent implements OnInit {
         );
   }
 //Ergebnisse der Studierenden für Filter
-  getStudentsForFilter(campusonlineholdingID: number, searchString: string = "", next: string = "") {
-    let dataStudent;
-    this.studentService.getStudent(searchString, next)
-        .subscribe(
-          (dataReturn) => {
-            dataStudent = dataReturn
-
-            let tmpStartedCampusOnlineHolding = this.mapStartedCampusOnlineHoldings.get(campusonlineholdingID)
-            tmpStartedCampusOnlineHolding.campusonlineholdingStudentSearch = dataStudent.results
-            this.mapStartedCampusOnlineHoldings.set(campusonlineholdingID, tmpStartedCampusOnlineHolding)
-            if(dataStudent.next) {
-              //this.getStudentsForFilter(searchString, dataStudent.next);
-            } else {
-              //console.log(this.options);
-            }
-          },
-          (err) => {
-            console.log(err);
-          }
-        );
+  getStudentsForFilter(campusonlineholdingID: number, searchString: string = "") {
+    if(searchString.length >= 3) {
+      let tmpStartedCampusOnlineHolding = this.mapStartedCampusOnlineHoldings.get(campusonlineholdingID)
+      tmpStartedCampusOnlineHolding.campusonlineholdingStudentSearch = tmpStartedCampusOnlineHolding.campusonlineholdingAccreditedStudent.filter(x => x.last_name.toLowerCase().includes(searchString.toLowerCase()))
+      this.mapStartedCampusOnlineHoldings.set(campusonlineholdingID, tmpStartedCampusOnlineHolding)
+    }
   }
 
 //Suche in allen Räumen (Filterfunktionen werden aktifiert)
@@ -510,6 +509,7 @@ export class CourseListComponent implements OnInit {
                 campusonlineholding: this.lastStartedCourseOnlineHolding,
                 campusonlineholdingData: course,
                 campusonlineholdingStudent: this.emptyCampusonlineHoldingStudent,
+                campusonlineholdingAccreditedStudent: [],
                 campusonlineholdingStudentSearch: []
               })
 
@@ -573,6 +573,7 @@ export class CourseListComponent implements OnInit {
             campusonlineholding: this.lastStartedCourseOnlineHolding,
             campusonlineholdingData: data,
             campusonlineholdingStudent: this.emptyCampusonlineHoldingStudent,
+            campusonlineholdingAccreditedStudent: [],
             campusonlineholdingStudentSearch: []
           })
         },
@@ -621,7 +622,8 @@ export class CourseListComponent implements OnInit {
                 title: student.student.title,
                 firstName: student.student.first_name,
                 lastName: student.student.last_name,
-                state: student.state
+                state: student.state,
+                accredited: student.accredited ? "inGroup" : "notInGroup"
               }
               switch(student.state) {
                 case "assigned": {
@@ -650,7 +652,8 @@ export class CourseListComponent implements OnInit {
                       title: student.student.title,
                       firstName: student.student.first_name,
                       lastName: student.student.last_name,
-                      state: student.state
+                      state: student.state,
+                      accredited: student.accredited ? "inGroup" : "notInGroup"
                     }
                     switch(student.state) {
                       case "assigned": {
@@ -785,7 +788,7 @@ export class CourseListComponent implements OnInit {
 
   checkinStudent(student, courseOnlineHoldingId: number) {
       this._dialogService.openConfirm({
-        message: 'Wollen Sie diese Person "' + student.presentation + '" zur Lehrveranstaltung hinzufügen? ',
+        message: 'Wollen Sie diese Person "' + student.first_name + ' ' + student.last_name +'" zur Lehrveranstaltung hinzufügen? ',
         disableClose: false, // defaults to false
         viewContainerRef: this._viewContainerRef, //OPTIONAL
         title: 'Studierende*r hinzufügen', //OPTIONAL, hides if not provided

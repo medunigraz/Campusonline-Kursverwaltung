@@ -21,7 +21,8 @@ export interface CampusonlineholdingStudent {
 
 export interface RunningCourse {
   campusonlineholding: CampusOnlineHoldings;
-  campusonlineholdingData: Array<any>;
+  campusonlineholdingData: any;
   campusonlineholdingStudent: CampusonlineholdingStudent;
+  campusonlineholdingAccreditedStudent: Array<any>;
   campusonlineholdingStudentSearch: Array<any>;
 }

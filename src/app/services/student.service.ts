@@ -31,6 +31,11 @@ export class StudentService {
     return this.http.get(url, this.headers);
   }
 
+  getAccreditedStudentListFromCourseonlineholding(course: CampusOnlineHoldings) {
+    let url = this.apiURL + "attendance/campusonlineholding/"+course.id+"/?expand=accredited";
+    return this.http.get(url, this.headers);
+  }
+
   manualCheckinStudent(studentId: number, course: CampusOnlineHoldings) {
     let url = this.apiURL + "attendance/manualcampusonlineentry/";
     var parameter = JSON.stringify({"student": studentId, "holding": course.id, "room": course.room});
