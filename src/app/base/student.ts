@@ -4,5 +4,6 @@ export interface Student {
   firstName: string;
   lastName: string;
   state: string;
-  accredited: string;
+  accredited: boolean;
+  immunized: boolean;
 }

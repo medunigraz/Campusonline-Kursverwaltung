@@ -1,7 +1,7 @@
 import { AuthConfig } from 'angular-oauth2-oidc';
 
-//let baseURL = 'https://api.medunigraz.at:8088/';
-let baseURL = 'https://api-test.medunigraz.at/';
+let baseURL = 'https://api.medunigraz.at/';
+//let baseURL = 'https://api-test.medunigraz.at/';
 
 export const environment = {
   production: true,
@@ -9,9 +9,9 @@ export const environment = {
 };
 
 export const auth: AuthConfig = {
-//  'clientId': 'zfPJ2FCJMWgZxm9tvpIHsy5J5W5G4LaZzMs5WZvu', //https://api.medunigraz.at:8088/
-  'clientId': 'jv74QwVn5T3VislAPYY0N4TIDzvSeJtuNKENVXWP', //https://api-test.medunigraz.at
-  //'redirectUri': 'http://localhost:4200/',  
+  'clientId': '8xlXS0VDF06JqqwJGVzxbiA41WKwklpAfZlHQUBM', //https://api.medunigraz.at/
+  // 'clientId': 'jv74QwVn5T3VislAPYY0N4TIDzvSeJtuNKENVXWP', //https://api-test.medunigraz.at
+  //'redirectUri': 'http://localhost:4200/',
   'redirectUri': 'https://eanwesenheit.medunigraz.at/',
   'loginUrl': baseURL + 'oauth2/authorize/',
   'postLogoutRedirectUri': '',

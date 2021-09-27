@@ -26,6 +26,11 @@ export class StudentService {
     return this.http.get(url, this.headers);
   }
 
+  getStudentListFromRoom(raumId) {
+    let url = this.apiURL + "attendance/roomstate/"+raumId;//+"/?expand=entries.student";
+    return this.http.get(url, this.headers);
+  }
+
   getManualStudentListFromCourseonlineholding(course: CampusOnlineHoldings) {
     let url = this.apiURL + "attendance/campusonlineholding/"+course.id+"/?expand=manual_entries.student";
     return this.http.get(url, this.headers);

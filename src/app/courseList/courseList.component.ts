@@ -33,12 +33,23 @@ export class CourseListComponent implements OnInit {
   overlayStarSyntax: boolean = false;
 
   private raumId : number = 0;
+  //MC 4: 20535
+  //MC 3: 20536
   private vortragendenId: number = 0;
   private startGT : string = "";
   private startLT : string = "";
   private offset : number= 0;
 
   private coursesArray = [];
+  arrStudiesInRoom = {
+    listStudents: [],
+    listStudentsAccredited: [],
+    listStudentsImmunized: [],
+    listStudentsOk: [],
+    countFalse: 0,
+    countImmunizedFalse: 0,
+    countAccreditedFalse: 0
+  }
 
   options: Autocomplete[] = [];
   optionsVortragende: Autocomplete[] = [];
@@ -98,28 +109,33 @@ export class CourseListComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.toggleOverlayStarSyntax();
-    this.checkCourseIsRunningInRoom();
-    this.searchDate.setValue(new Date());
-
-    this.filteredOptions = this.searchRoomName.valueChanges
-      .pipe(
-        startWith<string | Autocomplete>(''),
-        map(value => typeof value === 'string' ? value : value.presentation),
-        map(presentation => presentation ? this._filter(presentation) : this.options.slice())
-      );
-
-    this.filteredVortragendeOptions = this.searchVortragenden.valueChanges
-      .pipe(
-        startWith<string | Autocomplete>(''),
-        map(value => typeof value === 'string' ? value : value.presentation),
-        map(presentation => presentation ? this._filterVortragende(presentation) : this.optionsVortragende.slice())
-      );
-
-    this.minDate.setDate(this.minDate.getDate() - 6)
-    this.maxDate.setDate(this.maxDate.getDate() + 7)
-
-    //setInterval(() => { this.getStudentList(); }, 5000 );
+    if(this.raumId) {
+      this.getStudentListForRoom();
+      setInterval(() => { this.getStudentListForRoom(); }, 5000 );
+    }
+//    this.toggleOverlayStarSyntax();
+//    this.checkCourseIsRunningInRoom();
+//    this.searchDate.setValue(new Date());
+//
+//    this.filteredOptions = this.searchRoomName.valueChanges
+//      .pipe(
+//        startWith<string | Autocomplete>(''),
+//        map(value => typeof value === 'string' ? value : value.presentation),
+//        map(presentation => presentation ? this._filter(presentation) : this.options.slice())
+//      );
+//
+//    this.filteredVortragendeOptions = this.searchVortragenden.valueChanges
+//      .pipe(
+//        startWith<string | Autocomplete>(''),
+//        map(value => typeof value === 'string' ? value : value.presentation),
+//        map(presentation => presentation ? this._filterVortragende(presentation) : this.optionsVortragende.slice())
+//      );
+//
+//    this.minDate.setDate(this.minDate.getDate() - 6)
+//    this.maxDate.setDate(this.maxDate.getDate() + 7)
+//    this.maxDate.setDate(this.maxDate.getDate() + 20)
+//
+//    setInterval(() => { this.getStudentList(); }, 5000 );
   }
 
   displayFn(room?: Autocomplete): string | undefined {
@@ -174,11 +190,13 @@ export class CourseListComponent implements OnInit {
     clearTimeout(this.timeOut);
     this.timeOut = setTimeout(
             () => {
-              if(this.searchVortragenden.value.length >= 4) {
+              if(this.searchVortragenden.value.length >= 1) {
                 this.optionsVortragende = []
                 this.getVortragendeForFilter(this.searchVortragenden.value, "")
+              } else {
+                this.optionsVortragende = []
               }
-        }, 400
+        }, 100
     );
   }
 //Filter Raum Bezeichnung geändert
@@ -228,6 +246,7 @@ export class CourseListComponent implements OnInit {
                   this.studentService.getAccreditedStudentListFromCourseonlineholding(tmpStartedCampusOnlineHolding.campusonlineholding)
                     .subscribe(
                       (dataReturn) => {
+                        console.log(dataReturn)
                         data = dataReturn as any;
                         tmpStartedCampusOnlineHolding.campusonlineholdingAccreditedStudent = data.accredited
                         this.mapStartedCampusOnlineHoldings.set(campusonlineholdingID, tmpStartedCampusOnlineHolding)
@@ -325,7 +344,8 @@ export class CourseListComponent implements OnInit {
 
       if(!this.searchDate.value|| this.searchDate.value === null) {
         startGTDate.setDate(startGTDate.getDate() - 6);
-        startLTDate.setDate(startLTDate.getDate() + 7);
+        startLTDate.setDate(startLTDate.getDate() + 20);
+        //startLTDate.setDate(startLTDate.getDate() + 7);
       }
       startGTDate.setMinutes(0);
       startGTDate.setHours(0);
@@ -422,7 +442,7 @@ export class CourseListComponent implements OnInit {
               let campusHoldingDataId = this.mapStartedCampusOnlineHoldings.get(courseOnlineHoldingId).campusonlineholdingData
               this.arrStartedCourseOnlineHolding.splice(this.arrStartedCourseOnlineHolding.indexOf(campusHoldingDataId), 1)
               this.mapStartedCampusOnlineHoldings.delete(courseOnlineHoldingId)
-              this.getCourses(this.raumId);
+              // this.getCourses(this.raumId);
               this.runningCourse = false;
             },
             (err) => {
@@ -450,7 +470,7 @@ export class CourseListComponent implements OnInit {
               let campusHoldingDataId = this.mapStartedCampusOnlineHoldings.get(courseOnlineHoldingId).campusonlineholdingData
               this.arrStartedCourseOnlineHolding.splice(this.arrStartedCourseOnlineHolding.indexOf(campusHoldingDataId), 1)
               this.mapStartedCampusOnlineHoldings.delete(courseOnlineHoldingId)
-              this.getCourses(this.raumId);
+              //this.getCourses(this.raumId);
               this.runningCourse = false;
             },
             (err) => {
@@ -503,6 +523,7 @@ export class CourseListComponent implements OnInit {
             counter++;
             data = dataReturn;
             if(data.count > 0) {
+              console.log("test")
               this.lastStartedCourseOnlineHolding = data.results[0];
               this.arrStartedCourseOnlineHolding.push(course.id)
               this.mapStartedCampusOnlineHoldings.set(this.lastStartedCourseOnlineHolding.id, {
@@ -623,7 +644,8 @@ export class CourseListComponent implements OnInit {
                 firstName: student.student.first_name,
                 lastName: student.student.last_name,
                 state: student.state,
-                accredited: student.accredited ? "inGroup" : "notInGroup"
+                accredited: student.accredited,// student.accredited ? "inGroup" : "notInGroup"
+                immunized: true //TODO: LISTENANSICHT
               }
               switch(student.state) {
                 case "assigned": {
@@ -653,7 +675,8 @@ export class CourseListComponent implements OnInit {
                       firstName: student.student.first_name,
                       lastName: student.student.last_name,
                       state: student.state,
-                      accredited: student.accredited ? "inGroup" : "notInGroup"
+                      accredited: student.accredited,// student.accredited ? "inGroup" : "notInGroup"
+                      immunized: true //TODO: LISTENANSICHT
                     }
                     switch(student.state) {
                       case "assigned": {
@@ -700,6 +723,64 @@ export class CourseListComponent implements OnInit {
           }
       );
     });
+  }
+
+  getStudentListForRoom() {
+    let data;
+    this.studentService.getStudentListFromRoom(this.raumId)
+      .subscribe(
+        (dataReturn) => {
+          this.arrStudiesInRoom = {
+            listStudents: [],
+            listStudentsAccredited: [],
+            listStudentsImmunized: [],
+            listStudentsOk: [],
+            countFalse: 0,
+            countImmunizedFalse: 0,
+            countAccreditedFalse: 0
+          }
+          data = dataReturn as any;
+          //this.testStudierendeRaum();
+          for(let student of [].concat(data.cards, data.manuals)) {
+            let tmpStudent: Student = {
+              id: student.id,
+              title: student.student.title,
+              firstName: student.student.first_name,
+              lastName: student.student.last_name,
+              state: student.state,
+              accredited: student.accredited,// student.accredited ? "inGroup" : "notInGroup"
+              immunized: student.student.immunized //TODO: LISTENANSICHT
+            }
+            if(!student.student.immunized) {
+              this.arrStudiesInRoom.listStudentsImmunized.push(tmpStudent)
+            } else if (!student.accredited) {
+              this.arrStudiesInRoom.listStudentsAccredited.push(tmpStudent)
+            }
+            if(student.accredited && student.immunized) {
+              this.arrStudiesInRoom.listStudentsOk.push(tmpStudent)
+            }
+          }
+          this.arrStudiesInRoom.listStudentsAccredited.sort(function(a, b) {
+                if(a.lastName < b.lastName) { return -1; }
+                if(a.lastName > b.lastName) { return 1; }
+                return 0;
+          })
+          this.arrStudiesInRoom.listStudentsImmunized.sort(function(a, b) {
+                if(a.lastName < b.lastName) { return -1; }
+                if(a.lastName > b.lastName) { return 1; }
+                return 0;
+          })
+          this.arrStudiesInRoom.listStudentsOk.sort(function(a, b) {
+                if(a.lastName < b.lastName) { return -1; }
+                if(a.lastName > b.lastName) { return 1; }
+                return 0;
+          })
+          this.arrStudiesInRoom.listStudents = [].concat(this.arrStudiesInRoom.listStudentsImmunized, this.arrStudiesInRoom.listStudentsAccredited, this.arrStudiesInRoom.listStudentsOk)
+        },
+        (err) => {
+          console.log(err)
+        }
+    );
   }
 
   checkoutStudent(student: Student) {
@@ -815,5 +896,93 @@ export class CourseListComponent implements OnInit {
         }
       //console.log(id);
     });
+  }
+
+
+  testStudierendeRaum() {
+      this.arrStudiesInRoom.listStudentsImmunized.push({
+        id: 12,
+        title: "",
+        firstName: "Nadine",
+        lastName: "Testfrau",
+        accredited: true,
+        immunized: false
+      });
+      this.arrStudiesInRoom.listStudentsImmunized.push({
+        id: 12,
+        title: "",
+        firstName: "Romana",
+        lastName: "Testlein",
+        accredited: true,
+        immunized: false
+      });
+      this.arrStudiesInRoom.listStudentsOk.push({
+        id: 12,
+        title: "",
+        firstName: "Jonas",
+        lastName: "Zeber",
+        accredited: true,
+        immunized: true
+      });
+      this.arrStudiesInRoom.listStudentsImmunized.push({
+        id: 12,
+        title: "",
+        firstName: "Max",
+        lastName: "Mustermann",
+        accredited: false,
+        immunized: false
+      });
+      this.arrStudiesInRoom.listStudentsAccredited.push({
+        id: 12,
+        title: "",
+        firstName: "Martina",
+        lastName: "Musterfrau",
+        accredited: false,
+        immunized: true
+      });
+      this.arrStudiesInRoom.listStudentsAccredited.push({
+        id: 12,
+        title: "",
+        firstName: "Hugo",
+        lastName: "Testchen",
+        accredited: false,
+        immunized: true
+      });
+      this.arrStudiesInRoom.listStudentsAccredited.push({
+        id: 12,
+        title: "",
+        firstName: "Philipp",
+        lastName: "Testmann",
+        accredited: false,
+        immunized: true
+      });
+      this.arrStudiesInRoom.listStudentsOk.push({
+        id: 12,
+        title: "",
+        firstName: "Jenny",
+        lastName: "Frauxy",
+        accredited: true,
+        immunized: true
+      });
+      this.arrStudiesInRoom.listStudentsOk.push({
+        id: 12,
+        title: "",
+        firstName: "Clemens",
+        lastName: "Herryz",
+        accredited: true,
+        immunized: true
+      });
+      this.arrStudiesInRoom.listStudentsOk.push({
+        id: 12,
+        title: "",
+        firstName: "Clara",
+        lastName: "Kindermann",
+        accredited: true,
+        immunized: true
+      });
+
+      this.arrStudiesInRoom.countImmunizedFalse = 3;
+      this.arrStudiesInRoom.countAccreditedFalse = 3;
+      this.arrStudiesInRoom.countFalse = 6;
   }
 }

@@ -134,6 +134,13 @@ table thead tr th {
   color: grey;
   text-align: left;/* center; */
 }
+
+td.center {
+  text-align: center;
+}
+.immunized {
+    color:red !important;
+}
 table.mat-table thead tr, table.mat-table tbody tr  {
   border-bottom-style: solid;
   border-bottom-width: 1px;
@@ -230,6 +237,11 @@ table.studentTable tr td button i.material-icons {
   padding-bottom: 1px;
 }
 
+.StudierendeMatrikelnummer {
+  font-weight: bold;
+  color: grey;
+}
+
 .mat-calendar-body-today:not(.mat-calendar-body-selected) {
     border-color: #34b233 !important;
 }
@@ -248,4 +260,23 @@ td-dialog-content span {
 
 .mat-form-field-infix {
   width: 400px !important;
+}
+
+.footer {
+  width: 100%;
+  background-color: #45ab34;
+  padding: 25px 0px 25px 20px;
+  color: white;
+  margin-top: 50px;
+  text-align: center;
+}
+
+a {
+  color: white;
+}
+
+.mat-tab-label, .mat-tab-link {
+    color: black !important;
+    font-weight: bold !important;
+    font-size: 17px !important;
 }
