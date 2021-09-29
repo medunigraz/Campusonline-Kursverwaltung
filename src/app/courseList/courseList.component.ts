@@ -43,7 +43,7 @@ export class CourseListComponent implements OnInit {
   private coursesArray = [];
   arrStudiesInRoom = {
     listStudents: [],
-    listStudentsAccredited: [],
+    listStudentsOnSite: [],
     listStudentsImmunized: [],
     listStudentsOk: [],
     countFalse: 0,
@@ -645,7 +645,8 @@ export class CourseListComponent implements OnInit {
                 lastName: student.student.last_name,
                 state: student.state,
                 accredited: student.accredited,// student.accredited ? "inGroup" : "notInGroup"
-                immunized: true //TODO: LISTENANSICHT
+                onsite: student.onsite,
+                immunized: student.student.immunized
               }
               switch(student.state) {
                 case "assigned": {
@@ -676,7 +677,8 @@ export class CourseListComponent implements OnInit {
                       lastName: student.student.last_name,
                       state: student.state,
                       accredited: student.accredited,// student.accredited ? "inGroup" : "notInGroup"
-                      immunized: true //TODO: LISTENANSICHT
+                      onsite: student.onsite,
+                      immunized: student.student.immunized
                     }
                     switch(student.state) {
                       case "assigned": {
@@ -732,7 +734,7 @@ export class CourseListComponent implements OnInit {
         (dataReturn) => {
           this.arrStudiesInRoom = {
             listStudents: [],
-            listStudentsAccredited: [],
+            listStudentsOnSite: [],
             listStudentsImmunized: [],
             listStudentsOk: [],
             countFalse: 0,
@@ -743,24 +745,25 @@ export class CourseListComponent implements OnInit {
           //this.testStudierendeRaum();
           for(let student of [].concat(data.cards, data.manuals)) {
             let tmpStudent: Student = {
-              id: student.id,
+              id: student.student.id,
               title: student.student.title,
               firstName: student.student.first_name,
               lastName: student.student.last_name,
               state: student.state,
               accredited: student.accredited,// student.accredited ? "inGroup" : "notInGroup"
-              immunized: student.student.immunized //TODO: LISTENANSICHT
+              onsite: student.onsite,
+              immunized: student.student.immunized
             }
-            if(!student.student.immunized) {
+            if(!tmpStudent.immunized) {
               this.arrStudiesInRoom.listStudentsImmunized.push(tmpStudent)
-            } else if (!student.accredited) {
-              this.arrStudiesInRoom.listStudentsAccredited.push(tmpStudent)
+            } else if (!tmpStudent.onsite) {
+              this.arrStudiesInRoom.listStudentsOnSite.push(tmpStudent)
             }
-            if(student.accredited && student.immunized) {
+            if(tmpStudent.onsite && tmpStudent.immunized) {
               this.arrStudiesInRoom.listStudentsOk.push(tmpStudent)
             }
           }
-          this.arrStudiesInRoom.listStudentsAccredited.sort(function(a, b) {
+          this.arrStudiesInRoom.listStudentsOnSite.sort(function(a, b) {
                 if(a.lastName < b.lastName) { return -1; }
                 if(a.lastName > b.lastName) { return 1; }
                 return 0;
@@ -775,7 +778,7 @@ export class CourseListComponent implements OnInit {
                 if(a.lastName > b.lastName) { return 1; }
                 return 0;
           })
-          this.arrStudiesInRoom.listStudents = [].concat(this.arrStudiesInRoom.listStudentsImmunized, this.arrStudiesInRoom.listStudentsAccredited, this.arrStudiesInRoom.listStudentsOk)
+          this.arrStudiesInRoom.listStudents = [].concat(this.arrStudiesInRoom.listStudentsImmunized, this.arrStudiesInRoom.listStudentsOnSite, this.arrStudiesInRoom.listStudentsOk)
         },
         (err) => {
           console.log(err)
@@ -932,7 +935,7 @@ export class CourseListComponent implements OnInit {
         accredited: false,
         immunized: false
       });
-      this.arrStudiesInRoom.listStudentsAccredited.push({
+      this.arrStudiesInRoom.listStudentsOnSite.push({
         id: 12,
         title: "",
         firstName: "Martina",
@@ -940,7 +943,7 @@ export class CourseListComponent implements OnInit {
         accredited: false,
         immunized: true
       });
-      this.arrStudiesInRoom.listStudentsAccredited.push({
+      this.arrStudiesInRoom.listStudentsOnSite.push({
         id: 12,
         title: "",
         firstName: "Hugo",
@@ -948,7 +951,7 @@ export class CourseListComponent implements OnInit {
         accredited: false,
         immunized: true
       });
-      this.arrStudiesInRoom.listStudentsAccredited.push({
+      this.arrStudiesInRoom.listStudentsOnSite.push({
         id: 12,
         title: "",
         firstName: "Philipp",

@@ -33,7 +33,7 @@
               <b>Zu überprüfende Studierende:</b>
             </td>
             <td>
-                <b>{{arrStudiesInRoom.listStudentsAccredited.length + arrStudiesInRoom.listStudentsImmunized.length}}</b>
+                <b>{{arrStudiesInRoom.listStudentsOnSite.length + arrStudiesInRoom.listStudentsImmunized.length}}</b>
             </td>
           </tr>
           <tr>
@@ -49,7 +49,7 @@
               <b>Nicht für diese Präsenzveranstaltung angemeldet:</b>
             </td>
             <td>
-              {{arrStudiesInRoom.listStudentsAccredited.length}}
+              {{arrStudiesInRoom.listStudentsOnSite.length}}
             </td>
           </tr>
           <tr>
@@ -83,7 +83,7 @@
          </thead>
          <tbody>
            <tr td-data-table-row *ngFor="let student of arrStudiesInRoom.listStudents; let student of arrStudiesInRoom.listStudents"  class="studentTable">
-             <td class="center"><mat-icon *ngIf="student.immunized == false" class="immunized">new_releases_icon</mat-icon><mat-icon *ngIf="student.accredited == false">event_busy_icon</mat-icon></td>
+             <td class="center"><mat-icon *ngIf="student.immunized == false" class="immunized">new_releases_icon</mat-icon><mat-icon *ngIf="student.onsite == false">event_busy_icon</mat-icon></td>
              <td>{{student.title}}</td>
              <td><b>{{student.lastName}}</b> {{student.firstName}}</td>
              </tr>

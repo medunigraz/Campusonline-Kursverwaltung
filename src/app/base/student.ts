@@ -6,4 +6,5 @@ export interface Student {
   state: string;
   accredited: boolean;
   immunized: boolean;
+  onsite: boolean;
 }
